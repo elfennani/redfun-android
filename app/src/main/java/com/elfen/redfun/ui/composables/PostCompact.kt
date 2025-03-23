@@ -5,25 +5,21 @@ package com.elfen.redfun.ui.composables
 import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
-import android.util.Patterns
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -35,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,20 +38,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.elfen.redfun.data.remote.models.Link
 import java.time.Duration
-import java.time.Instant
 import kotlin.math.abs
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
-import java.net.URL
+import com.elfen.redfun.domain.models.Post
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 
+@OptIn(ExperimentalTime::class)
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDistanceToNowStrict(date: Instant): String {
-    val now = Instant.now()
-    val duration = Duration.between(date, now)
+    val now = Clock.System.now()
+    val duration = Duration.between(date.toJavaInstant(), now.toJavaInstant())
     val seconds = abs(duration.seconds)
 
     return when {
@@ -98,8 +96,9 @@ fun shortenNumber(value: Long): String {
     }.replace(".0", "") // Remove trailing ".0" if not needed
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
-fun PostCompact(modifier: Modifier = Modifier, post: Link) {
+fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true) {
     val context = LocalContext.current
 
     Column(
@@ -111,7 +110,7 @@ fun PostCompact(modifier: Modifier = Modifier, post: Link) {
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Text(
-                "r/${post.subreddit} • ${formatDistanceToNowStrict(Instant.ofEpochSecond(post.created))}",
+                "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
                 style = TextStyle(
                     color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp,
@@ -136,49 +135,51 @@ fun PostCompact(modifier: Modifier = Modifier, post: Link) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     post.title,
-                    maxLines = 2,
+                    maxLines = if(truncate) 2 else Int.MAX_VALUE,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleSmall,
                     lineHeight = 21.sp
                 )
-                if (post.selftext.isNotEmpty())
-                    Text(post.selftext, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Justify, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp), color = MaterialTheme.colorScheme.outline)
+                if (!post.body.isNullOrEmpty() && truncate)
+                    Text(
+                        post.body,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Justify,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
             }
-            if (post.thumbnail != null && Patterns.WEB_URL.matcher(post.thumbnail).matches()) {
-                AsyncImage(
-                    model = post.thumbnail,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .width(96.dp)
-                        .aspectRatio(4f / 3f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentScale = ContentScale.Crop,
-                )
-            }
+//            if (post.thumbnail != null) {
+//                AsyncImage(
+//                    model = post.thumbnail,
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .clip(RoundedCornerShape(8.dp))
+//                        .width(96.dp)
+//                        .aspectRatio(4f / 3f)
+//                        .background(MaterialTheme.colorScheme.surfaceVariant),
+//                    contentScale = ContentScale.Crop,
+//                )
+//            }
         }
-        val isLink = !post.isRedditMediaDomain &&
-                post.urlOverriddenByDest?.isNotEmpty() === true &&
-                post.mediaMetadata === null;
-        if (isLink) {
+        if (post.link !== null) {
             Row(
                 modifier = Modifier
                     .border(1.dp, color = Color.LightGray, CircleShape)
                     .clip(CircleShape)
                     .clickable {
-                        if (post.urlOverriddenByDest.isNotEmpty() == true) {
-
                             try {
                                 context.startActivity(
                                     android.content.Intent(
                                         android.content.Intent.ACTION_VIEW,
-                                        post.urlOverriddenByDest.toUri()
+                                        post.link.toUri()
                                     )
                                 )
                             } catch (e: Exception) {
                                 Log.e("PostCompact", "Error opening link", e)
                             }
-                        }
                     }
                     .padding(vertical = 8.dp, horizontal = 16.dp)
                     .fillMaxWidth(),
@@ -186,7 +187,7 @@ fun PostCompact(modifier: Modifier = Modifier, post: Link) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = post.urlOverriddenByDest,
+                    text = post.link,
                     color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -201,6 +202,39 @@ fun PostCompact(modifier: Modifier = Modifier, post: Link) {
                 )
 
             }
+        }
+
+        if(!post.images.isNullOrEmpty()){
+            if(post.images.size == 1){
+                val image = post.images.first()
+                AsyncImage(
+                    model = image.source,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .fillMaxWidth()
+                        .aspectRatio(image.width.toFloat()/image.height.toFloat())
+                )
+            } else {
+                val pagerState = rememberPagerState(pageCount = {
+                    post.images.size
+                })
+                HorizontalPager(state = pagerState) { page ->
+                    val image = post.images[page]
+                    AsyncImage(
+                        model = image.source,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .fillMaxWidth()
+                            .aspectRatio(image.width.toFloat()/image.height.toFloat())
+                    )
+                }
+            }
+        }
+
+        if(post.body !== null && !truncate){
+            MarkdownRenderer(content = post.body)
         }
 
         Row(

@@ -12,7 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.elfen.redfun.ui.composables.PostCompact
+import com.elfen.redfun.ui.composables.PostCard
 import com.elfen.redfun.ui.screens.post.PostRoute
 import kotlinx.serialization.Serializable
 
@@ -30,7 +30,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         val posts = viewModel.posts.collectAsState()
         LazyColumn(contentPadding = innerPadding) {
             items(posts.value) {
-                PostCompact(
+                PostCard(
                     modifier = Modifier.clickable { navController.navigate(PostRoute(it.id)) },
                     post = it
                 )

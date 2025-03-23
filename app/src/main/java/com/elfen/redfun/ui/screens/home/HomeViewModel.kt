@@ -3,8 +3,7 @@ package com.elfen.redfun.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfen.redfun.data.FeedService
-import com.elfen.redfun.data.remote.APIService
-import com.elfen.redfun.data.remote.models.Link
+import com.elfen.redfun.domain.models.Post
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val feedService: FeedService): ViewModel() {
-    private val _posts = MutableStateFlow<List<Link>>(emptyList())
+    private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts = _posts.asStateFlow()
 
     init {
