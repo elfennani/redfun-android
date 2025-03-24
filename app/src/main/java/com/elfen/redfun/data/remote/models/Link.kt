@@ -69,21 +69,6 @@ fun Link.asDomainModel(): Post {
         )
     }
 
-    /*
-      if (post.media_metadata && (post.preview?.enabled ?? true)) {
-        images = Object.values(post.media_metadata)
-          .map((media) => {
-            if ("hlsUrl" in media) return null;
-            return {
-              source: media.s.u ?? media.s.gif,
-              width: media.s.x,
-              height: media.s.y,
-            };
-          })
-          .filter((media) => media !== null);
-      }
-     */
-
     if(mediaMetadata!=null && (preview?.enabled === null || preview.enabled)){
         images = mediaMetadata.values.mapNotNull { media ->
             if(media.hlsUrl !== null) null

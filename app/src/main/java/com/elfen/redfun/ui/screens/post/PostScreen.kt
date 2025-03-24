@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.elfen.redfun.domain.models.Comment
+import com.elfen.redfun.ui.composables.CommentCard
 import com.elfen.redfun.ui.composables.PostCard
 import kotlinx.serialization.Serializable
 
@@ -41,10 +42,7 @@ fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltView
 
                 if (!state.value.isLoading)
                     items(comments) {
-                        if (it is Comment.Body)
-                            Text("Comment: ${it.body ?: it.id}")
-                        else if (it is Comment.More)
-                            Text("More: ${it.id}")
+                        CommentCard(it)
                     }
                 else
                     item {

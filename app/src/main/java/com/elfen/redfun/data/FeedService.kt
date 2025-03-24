@@ -1,20 +1,20 @@
 package com.elfen.redfun.data
 
 import android.util.Log
-import com.elfen.redfun.data.remote.APIService
+import com.elfen.redfun.data.remote.AuthAPIService
+import com.elfen.redfun.data.remote.PublicAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.models.Comment
 import com.elfen.redfun.domain.models.Post
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "FeedService"
 
 @Singleton
-class FeedService @Inject constructor(private val apiService: APIService) {
+class FeedService @Inject constructor(private val apiService: AuthAPIService) {
     private val cachedPosts: MutableMap<String, List<Post>> = mutableMapOf()
 
     suspend fun getPosts(feed: String): List<Post> {

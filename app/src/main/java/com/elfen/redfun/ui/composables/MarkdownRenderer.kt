@@ -65,7 +65,7 @@ fun MarkdownRenderer(modifier: Modifier = Modifier, content: String) {
     ) {
         elements.forEach { (element, type) ->
             if (type === "text" && element.isNotEmpty()) Text(
-                element, modifier = Modifier.fillMaxWidth(), fontSize = 14.sp, inlineContent = mapOf(
+                element, modifier = Modifier.fillMaxWidth(), inlineContent = mapOf(
                     Pair(
                         "https://octodex.github.com/images/minion.png",
                         InlineTextContent(

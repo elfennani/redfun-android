@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+import java.io.FileInputStream
+
 plugins {
     id("kotlin-kapt")
     alias(libs.plugins.android.application)
@@ -6,6 +9,15 @@ plugins {
     alias(libs.plugins.android.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
+// Creates a variable called keystorePropertiesFile, and initializes it to the
+// keystore.properties file.
+val appPropertiesFile = rootProject.file("app.properties")
+
+// Initializes a new Properties() object called keystoreProperties.
+val appProperties = Properties()
+
+// Loads the keystore.properties file into the keystoreProperties object.
+appProperties.load(FileInputStream(appPropertiesFile))
 
 android {
     namespace = "com.elfen.redfun"
@@ -30,6 +42,12 @@ android {
             )
         }
     }
+
+    buildTypes.forEach {
+        it.buildConfigField("String", "clientId", appProperties.getProperty("CLIENT_ID"))
+        it.buildConfigField("String", "redirectUri", appProperties.getProperty("REDIRECT_URI"))
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -39,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -52,6 +71,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.room.runtime)
+    //noinspection KaptUsageInsteadOfKsp
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.datastore)
     implementation(libs.markdown)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)

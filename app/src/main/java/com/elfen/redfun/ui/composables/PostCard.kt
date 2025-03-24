@@ -234,7 +234,9 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
         }
 
         if(post.body !== null && !truncate){
-            MarkdownRenderer(content = post.body)
+            CompositionLocalProvider(LocalTextStyle provides TextStyle(fontSize = 14.sp)) {
+                MarkdownRenderer(content = post.body)
+            }
         }
 
         Row(
