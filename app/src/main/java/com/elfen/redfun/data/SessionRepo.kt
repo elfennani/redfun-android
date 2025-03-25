@@ -11,6 +11,7 @@ import com.elfen.redfun.data.local.models.SessionEntity
 import com.elfen.redfun.data.remote.PublicAPIService
 import com.elfen.redfun.ui.utils.Resource
 import com.elfen.redfun.ui.utils.resourceOf
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -48,5 +49,12 @@ class SessionRepo @Inject constructor(private val publicApiService: PublicAPISer
 
             return@resourceOf profile.id
         }
+    }
+
+    suspend fun getCurrentSession(): SessionEntity? {
+        val sessionId = dataStore.data.first()[stringPreferencesKey("session_id")] ?: return null;
+        val session = sessionDao.getSession(sessionId)
+
+        return session
     }
 }

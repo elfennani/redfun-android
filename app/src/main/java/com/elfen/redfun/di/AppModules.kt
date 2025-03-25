@@ -117,5 +117,10 @@ object AppModules {
     }
 
     @Provides
+    @Singleton
     fun provideSessionDao(db: Database) = db.sessionDao()
+
+    @Provides
+    @Singleton
+    fun provideFeedCursorDao(db: Database) = db.feedCursorDao()
 }
