@@ -144,7 +144,6 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                     Text(
                         post.body,
                         style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Justify,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 4.dp),

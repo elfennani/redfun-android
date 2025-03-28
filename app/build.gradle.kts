@@ -81,6 +81,8 @@ dependencies {
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore)
+    implementation(libs.androidx.paging)
+    implementation(libs.androidx.paging.compose)
     implementation(libs.markdown)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)

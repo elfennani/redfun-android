@@ -5,8 +5,16 @@ import com.google.gson.JsonParseException
 import okio.IOException
 
 sealed class Resource<T>(val data: T? = null, val message: String? = null) {
-    class Success<T>(data: T?): Resource<T>(data)
-    class Error<T>(message: String, data: T? = null): Resource<T>(data, message)
+    class Success<T>(data: T?) : Resource<T>(data)
+    class Error<T>(message: String, data: T? = null) : Resource<T>(data, message)
+}
+
+suspend fun Throwable.toResource(): Resource.Error<Any> = when (this) {
+    is IOException -> Resource.Error("Not connected to the internet")
+    is retrofit2.HttpException -> Resource.Error("Something went wrong")
+    is JsonParseException -> Resource.Error("Failed to parse json")
+    is SQLiteException -> Resource.Error("Failed to save to database")
+    else -> Resource.Error("Something went wrong")
 }
 
 suspend fun <T> resourceOf(call: suspend () -> T): Resource<T> {

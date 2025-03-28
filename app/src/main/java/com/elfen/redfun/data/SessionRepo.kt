@@ -36,7 +36,7 @@ class SessionRepo @Inject constructor(private val publicApiService: PublicAPISer
             sessionDao.upsertSession(SessionEntity(
                 userId = profile.id,
                 token = response.token,
-                refreshToken = response.refreshToken,
+                refreshToken = response.refreshToken!!,
                 expiresAt = Clock.System.now().epochSeconds + response.expiresIn,
                 username = profile.name,
                 displayName = profile.subreddit.title,
@@ -49,6 +49,27 @@ class SessionRepo @Inject constructor(private val publicApiService: PublicAPISer
 
             return@resourceOf profile.id
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun refreshSession(sessionId: String): SessionEntity {
+        val clientId =
+            Base64.encodeToString((BuildConfig.clientId + ":").toByteArray(), Base64.NO_WRAP)
+        val redirectUri = BuildConfig.redirectUri
+        val session = sessionDao.getSession(sessionId);
+
+        val response = publicApiService.getAccessToken(
+            grantType = "refresh_token",
+            refreshToken = session!!.refreshToken,
+            auth = "Basic $clientId"
+        );
+
+        val newSession = sessionDao.upsertSession(session.copy(
+            token = response.token,
+            expiresAt = Clock.System.now().epochSeconds + response.expiresIn,
+        ));
+
+        return sessionDao.getSession(sessionId)!!
     }
 
     suspend fun getCurrentSession(): SessionEntity? {

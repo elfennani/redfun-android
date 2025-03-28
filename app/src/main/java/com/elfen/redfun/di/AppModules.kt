@@ -1,10 +1,12 @@
 package com.elfen.redfun.di
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.Room
+import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.SessionDao
 import com.elfen.redfun.data.local.dataStore
@@ -28,8 +30,12 @@ import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.Clock
 import javax.inject.Singleton
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+private const val TAG = "AppModules"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -63,22 +69,29 @@ object AppModules {
             .create(PublicAPIService::class.java)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Provides
-    fun provideAuthApiService(sessionDao: SessionDao, dataStore: DataStore<Preferences>): AuthAPIService{
+    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepo): AuthAPIService{
         val logging = HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(logging)
             .addInterceptor(object : Interceptor{
                 override fun intercept(chain: Interceptor.Chain): Response {
-                    val sessionId = runBlocking { dataStore.data.first()[stringPreferencesKey("session_id")] }
+                    val session = runBlocking { sessionRepo.getCurrentSession() }
 
-                    if(sessionId != null){
-                        val session = runBlocking { sessionDao.getSession(sessionId) }
+                    if(session != null){
                         val request = chain.request().newBuilder()
-                            .addHeader("Authorization", "Bearer ${session!!.token}")
-                            .build()
-                        return chain.proceed(request)
+                            .addHeader("Authorization", "Bearer ${session.token}")
+
+                        if(kotlin.time.Clock.System.now() >= Instant.fromEpochSeconds(session.expiresAt)){
+                            Log.d(TAG, "REFRESHING TOKEN!")
+                            val newSession =runBlocking { sessionRepo.refreshSession(session.userId); }
+                            request.removeHeader("Authorization");
+                            request.addHeader("Authorization", "Bearer ${newSession.token}");
+                        }
+
+                        return chain.proceed(request.build())
                     }
                     return chain.proceed(chain.request())
                 }
@@ -123,4 +136,8 @@ object AppModules {
     @Provides
     @Singleton
     fun provideFeedCursorDao(db: Database) = db.feedCursorDao()
+
+    @Provides
+    @Singleton
+    fun provideSortingDao(db: Database) = db.sortingDao()
 }
