@@ -8,16 +8,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,6 +28,7 @@ import com.elfen.redfun.ui.screens.auth.AuthRoute
 import com.elfen.redfun.ui.screens.auth.AuthScreen
 import com.elfen.redfun.ui.screens.home.HomeRoute
 import com.elfen.redfun.ui.screens.home.HomeScreen
+import com.elfen.redfun.ui.screens.home.HomeViewModel
 import com.elfen.redfun.ui.screens.login.LoginRoute
 import com.elfen.redfun.ui.screens.login.LoginScreen
 import com.elfen.redfun.ui.screens.post.PostRoute
@@ -92,7 +93,9 @@ fun Navigation() {
                 LoginScreen(navController)
             }
             composable<HomeRoute> {
-                HomeScreen(navController)
+                val viewModel = hiltViewModel<HomeViewModel>()
+
+                HomeScreen(navController, viewModel)
             }
             composable<PostRoute> {
                 PostScreen(navController)

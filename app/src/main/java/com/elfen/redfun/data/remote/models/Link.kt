@@ -43,7 +43,7 @@ fun Link.asDomainModel(): Post {
             if (source != null)
                 images = listOf(
                     MediaImage(
-                        null,
+                        first.id!!,
                         source,
                         first.s!!.x,
                         first.s.y,
@@ -61,7 +61,7 @@ fun Link.asDomainModel(): Post {
 
         images = listOf(
             MediaImage(
-                null,
+                preview.images[0].id,
                 image.url,
                 image.width, image.height,
                 animated = preview.images[0].source.url.endsWith(".gif")
@@ -77,6 +77,7 @@ fun Link.asDomainModel(): Post {
                 source = media.s!!.u ?: media.s.gif ?: return@mapNotNull null,
                 width = media.s.x,
                 height = media.s.y,
+                id = media.id!!,
                 animated = true,
             )
         }

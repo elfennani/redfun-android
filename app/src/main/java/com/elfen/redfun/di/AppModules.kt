@@ -140,4 +140,8 @@ object AppModules {
     @Provides
     @Singleton
     fun provideSortingDao(db: Database) = db.sortingDao()
+
+    @Provides
+    @Singleton
+    fun providePostDao(db: Database) = db.postDao()
 }

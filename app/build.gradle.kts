@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.paging)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore)

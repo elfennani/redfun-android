@@ -4,14 +4,18 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
+import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.dao.SortingDao
 import com.elfen.redfun.data.local.models.FeedCursorEntity
 import com.elfen.redfun.data.local.models.SortingEntity
 import com.elfen.redfun.data.local.models.toDomain
 import com.elfen.redfun.data.local.models.toEntity
+import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.PublicAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
@@ -36,17 +40,21 @@ class FeedService @Inject constructor(
     private val feedCursorDao: FeedCursorDao,
     private val sessionRepo: SessionRepo,
     private val sortingDao: SortingDao,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val database: Database
 ) {
     private val cachedPosts: MutableMap<String, List<Post>> = mutableMapOf()
 
-    fun getFeedPaging(sorting: Sorting) = Pager(PagingConfig(pageSize = 25)) {
-        FeedPagingSource(
-            apiService,
-            sessionRepo,
-            feedCursorDao,
-            sorting
-        )
+    @OptIn(ExperimentalPagingApi::class)
+    fun getFeedPaging(sorting: Sorting) = Pager(
+        config = PagingConfig(
+            pageSize = 25,
+            prefetchDistance = 12,
+            initialLoadSize = 25
+        ),
+        remoteMediator = FeedMediator(apiService, database, sorting)
+    ) {
+        database.postDao().getPagingFeedPosts(sorting.feed)
     }.flow
 
     suspend fun getPosts(
@@ -123,10 +131,7 @@ class FeedService @Inject constructor(
     }
 
     fun getPostWithComments(id: String): Flow<Pair<Post, List<Comment>?>> = flow {
-        val cached = cachedPosts.values.flatten().find {
-            Log.d(TAG, "getPostWithComments: ${it.id} === $id = ${it.id == id}")
-            it.id == id
-        }
+        val cached = database.postDao().getPostWithMedia(id)?.asAppModel()
         if (cached != null) {
             emit(Pair(cached, null))
         }

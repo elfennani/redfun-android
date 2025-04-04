@@ -62,6 +62,7 @@ fun RemoteComment.asDomainModel(): Comment {
                 source = it.s!!.u ?: it.s.gif ?: return@let null,
                 width = it.s.x,
                 height = it.s.y,
+                id = it.id!!,
                 animated = it.s.gif != null,
             )
 

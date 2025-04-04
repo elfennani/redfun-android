@@ -52,6 +52,7 @@ androidx-room-compiler = {group = "androidx.room", name = "room-compiler", versi
 androidx-datastore = {group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-paging = {group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 androidx-paging-compose = {group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+androidx-room-paging = {group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,5 +1,6 @@
 package com.elfen.redfun.ui.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,9 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.elfen.redfun.ui.composables.PostCard
 import com.elfen.redfun.ui.screens.post.PostRoute
@@ -33,12 +32,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.SortingTime
 import com.elfen.redfun.domain.models.toLabel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -53,7 +55,7 @@ internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val posts = state.posts?.collectAsLazyPagingItems()
     val scope = rememberCoroutineScope()
     val sortingSheetState = rememberModalBottomSheetState()
@@ -81,7 +83,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             )
         }
     ) { innerPadding ->
-        if ((state.isLoading && !state.isFetchingNextPage) || posts == null || posts.loadState.refresh == LoadState.Loading) {
+        val TAG = "HomeScreen"
+        Log.d(TAG, "isLoading: ${state.isLoading}")
+        Log.d(TAG, "isFetchingNextPage: ${state.isFetchingNextPage}")
+        Log.d(TAG, "Posts: ${posts?.itemCount}")
+        Log.d(TAG, "LoadState: ${posts?.loadState?.refresh}")
+        Log.d(TAG, "======================================")
+
+        if ((state.isLoading && !state.isFetchingNextPage) || posts == null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

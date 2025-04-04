@@ -15,7 +15,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AuthAPIService {
-    @GET("/{feed}?raw_json=1")
+    @GET("/{feed}?raw_json=1&limit=25")
     suspend fun getPosts(@Path("feed") feed: String = "best", @Query("after") after: String? = null, @Query("t") time: String? = null): DataCollection<Listing<DataCollection<Link>>>
 
     @GET("/comments/{id}?threaded=0&showmedia=1&raw_json=1")
