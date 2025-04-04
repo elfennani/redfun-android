@@ -1,4 +1,5 @@
-@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS",
+@file:Suppress(
+    "NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS",
     "IMPLICIT_BOXING_IN_IDENTITY_EQUALS"
 )
 
@@ -7,6 +8,7 @@ package com.elfen.redfun.data.remote.models
 import android.util.DisplayMetrics
 import android.util.Patterns
 import com.elfen.redfun.domain.models.MediaImage
+import com.elfen.redfun.domain.models.MediaVideo
 import com.elfen.redfun.domain.models.Post
 import com.google.gson.annotations.SerializedName
 import kotlin.time.ExperimentalTime
@@ -34,11 +36,13 @@ data class Link(
     @SerializedName("thumbnail_height") val thumbnailHeight: Int?,
     @SerializedName("thumbnail_width") val thumbnailWidth: Int?,
     @SerializedName("is_video") val isVideo: Boolean?,
+    val media: Media?
 )
 
 @OptIn(ExperimentalTime::class)
 fun Link.asDomainModel(): Post {
     var images = emptyList<MediaImage>()
+    var video: MediaVideo? = null
 
     if (mediaMetadata != null) {
         val first = mediaMetadata.values.first()
@@ -54,7 +58,38 @@ fun Link.asDomainModel(): Post {
                         animated = first.s.gif != null
                     )
                 )
+        } else {
+            video = MediaVideo(
+                source = first.hlsUrl,
+                width = first.x!!,
+                height = first.y!!,
+                duration = null,
+                isGif = first.isGif == true,
+                fallback = first.dashUrl
+            )
         }
+    }
+
+    if (isVideo == true) {
+        video = MediaVideo(
+            source = media!!.redditVideo.hlsUrl,
+            width = media.redditVideo.width,
+            height = media.redditVideo.height,
+            duration = media.redditVideo.duration,
+            isGif = media.redditVideo.isGif,
+            fallback = media.redditVideo.fallbackUrl,
+        )
+    }
+
+    if (preview?.redditVideoPreview != null) {
+        video = MediaVideo(
+            source = preview.redditVideoPreview.hlsUrl!!,
+            width = preview.redditVideoPreview.width,
+            height = preview.redditVideoPreview.height,
+            duration = null,
+            isGif = false,
+            fallback = null
+        )
     }
 
     if (preview?.images?.isNotEmpty() == true && preview.enabled == true) {
@@ -73,9 +108,9 @@ fun Link.asDomainModel(): Post {
         )
     }
 
-    if(mediaMetadata!=null && (preview?.enabled === null || preview.enabled)){
+    if (mediaMetadata != null && (preview?.enabled === null || preview.enabled)) {
         images = mediaMetadata.values.mapNotNull { media ->
-            if(media.hlsUrl !== null) null
+            if (media.hlsUrl !== null) null
 
             MediaImage(
                 source = media.s!!.u ?: media.s.gif ?: return@mapNotNull null,
@@ -106,9 +141,23 @@ fun Link.asDomainModel(): Post {
             mediaMetadata === null &&
             Patterns.WEB_URL.matcher(urlOverriddenByDest).matches()
         ) urlOverriddenByDest else null,
-        images = images.ifEmpty { null }
+        images = images.ifEmpty { null },
+        video = video
     )
 }
+
+data class Media(
+    @SerializedName("reddit_video") val redditVideo: RedditVideo,
+)
+
+data class RedditVideo(
+    val width: Int,
+    val height: Int,
+    @SerializedName("hls_url") val hlsUrl: String,
+    val duration: Int,
+    @SerializedName("is_gif") val isGif: Boolean,
+    @SerializedName("fallback_url") val fallbackUrl: String,
+)
 
 data class GalleryData(
     @SerializedName("items") val items: List<GalleryItem>
@@ -158,7 +207,7 @@ data class Preview(
 )
 
 data class PreviewImage(
-    @SerializedName("reddit_video_preview") val reddit_video_preview: RedditVideoPreview?,
+    @SerializedName("reddit_video_preview") val redditVideoPreview: RedditVideoPreview?,
     @SerializedName("source") val source: ImageSource,
     @SerializedName("resolutions") val resolutions: List<ImageSource>,
     @SerializedName("id") val id: String
@@ -166,9 +215,8 @@ data class PreviewImage(
 
 data class RedditVideoPreview(
     @SerializedName("hls_url") val hlsUrl: String?,
-    @SerializedName("source") val source: ImageSource,
-    @SerializedName("resolutions") val resolutions: List<ImageSource>,
-    @SerializedName("id") val id: String
+    val width: Int,
+    val height: Int,
 )
 
 

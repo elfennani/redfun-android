@@ -10,4 +10,9 @@ data class PostMediaEntity(
     val source: String,
     val width: Int,
     val height: Int,
+
+    val isVideo: Boolean?,
+    val duration: Int?,
+    val isGif: Boolean? ,
+    val fallback: String?
 )

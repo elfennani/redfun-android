@@ -10,7 +10,7 @@ id: z.string(),
     title: z.string().transform(stripEntities).optional(),
   }),
  */
-data class Profile(
+data class RemoteProfile(
     val id: String,
     val name: String,
     val subreddit: Subreddit,

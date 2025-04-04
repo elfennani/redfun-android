@@ -1,16 +1,11 @@
 package com.elfen.redfun.data.remote
 
-import com.elfen.redfun.data.remote.models.AccessToken
 import com.elfen.redfun.data.remote.models.DataCollection
 import com.elfen.redfun.data.remote.models.Link
 import com.elfen.redfun.data.remote.models.Listing
 import com.elfen.redfun.data.remote.models.PostDetails
-import com.elfen.redfun.data.remote.models.Profile
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
+import com.elfen.redfun.data.remote.models.RemoteProfile
 import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -22,5 +17,5 @@ interface AuthAPIService {
     suspend fun getComments(@Path("id") id: String): PostDetails
 
     @GET("/api/v1/me")
-    suspend fun getUserProfile(): Profile
+    suspend fun getUserProfile(): RemoteProfile
 }

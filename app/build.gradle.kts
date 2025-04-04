@@ -79,10 +79,15 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.paging)
+
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.paging)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.exoplayer.hls)
     implementation(libs.androidx.paging.compose)
     implementation(libs.markdown)
     implementation(libs.coil.compose)

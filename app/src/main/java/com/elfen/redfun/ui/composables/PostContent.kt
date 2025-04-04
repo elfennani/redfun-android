@@ -1,20 +1,18 @@
-@file:Suppress("IMPLICIT_BOXING_IN_IDENTITY_EQUALS")
-
 package com.elfen.redfun.ui.composables
 
-import android.annotation.SuppressLint
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -23,13 +21,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,137 +38,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import java.time.Duration
-import kotlin.math.abs
 import androidx.core.net.toUri
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.domain.models.Post
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
-import kotlin.time.toJavaInstant
 
-
-@OptIn(ExperimentalTime::class)
-@RequiresApi(Build.VERSION_CODES.O)
-fun formatDistanceToNowStrict(date: Instant): String {
-    val now = Clock.System.now()
-    val duration = Duration.between(date.toJavaInstant(), now.toJavaInstant())
-    val seconds = abs(duration.seconds)
-
-    return when {
-        seconds < 60 -> "$seconds second${if (seconds != 1L) "s" else ""}"
-        seconds < 3600 -> {
-            val minutes = seconds / 60
-            "$minutes minute${if (minutes != 1L) "s" else ""}"
-        }
-
-        seconds < 86400 -> {
-            val hours = seconds / 3600
-            "$hours hour${if (hours != 1L) "s" else ""}"
-        }
-
-        seconds < 2592000 -> {
-            val days = seconds / 86400
-            "$days day${if (days != 1L) "s" else ""}"
-        }
-
-        seconds < 31536000 -> {
-            val months = seconds / 2592000
-            "$months month${if (months != 1L) "s" else ""}"
-        }
-
-        else -> {
-            val years = seconds / 31536000
-            "$years year${if (years != 1L) "s" else ""}"
-        }
-    }
-}
-
-@SuppressLint("DefaultLocale")
-fun shortenNumber(value: Long): String {
-    return when {
-        value >= 1_000_000_000 -> String.format("%.1fB", value / 1_000_000_000.0)
-        value >= 1_000_000 -> String.format("%.1fM", value / 1_000_000.0)
-        value >= 1_000 -> String.format("%.1fK", value / 1_000.0)
-        else -> value.toString()
-    }.replace(".0", "") // Remove trailing ".0" if not needed
-}
-
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true) {
-    val context = LocalContext.current
-
+fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit) {
+    val context = LocalContext.current;
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
+            .clickable { onClick() }
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Text(
-                "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.outline,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
-            )
-        } else {
-            Text(
-                "r/${post.subreddit} • ${post.created}",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.outline,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    post.title,
-                    maxLines = if (truncate) 2 else Int.MAX_VALUE,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
-                    lineHeight = 21.sp
-                )
-                if (!post.body.isNullOrEmpty() && truncate)
-                    Text(
-                        post.body,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
-                        color = MaterialTheme.colorScheme.outline
-                    )
-            }
-//            if (post.thumbnail != null) {
-//                AsyncImage(
-//                    model = post.thumbnail,
-//                    contentDescription = null,
-//                    modifier = Modifier
-//                        .clip(RoundedCornerShape(8.dp))
-//                        .width(96.dp)
-//                        .aspectRatio(4f / 3f)
-//                        .background(MaterialTheme.colorScheme.surfaceVariant),
-//                    contentScale = ContentScale.Crop,
-//                )
-//            }
-        }
         if (post.link !== null && post.video == null) {
             Row(
                 modifier = Modifier
@@ -211,9 +97,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                 )
 
             }
-        }
-
-        if (post.video != null) {
+        } else if (post.video != null) {
             var videoEnabled by remember { mutableStateOf(false) }
             if (!videoEnabled) {
                 Box(
@@ -221,7 +105,9 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                         .clip(RoundedCornerShape(8.dp))
                         .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat())
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { videoEnabled = true },
+                        .combinedClickable(onLongClick = { onClick() }, onClick = {
+                            videoEnabled = true
+                        }),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
@@ -308,9 +194,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                     }
                 }
             }
-        }
-
-        if (!post.images.isNullOrEmpty()) {
+        } else if (!post.images.isNullOrEmpty()) {
             if (post.images.size == 1) {
                 val image = post.images.first()
                 AsyncImage(
@@ -318,6 +202,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                     contentDescription = null,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .fillMaxWidth()
                         .aspectRatio(image.width.toFloat() / image.height.toFloat())
                 )
@@ -325,67 +210,59 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                 val pagerState = rememberPagerState(pageCount = {
                     post.images.size
                 })
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                ) { page ->
-                    val image = post.images[page]
-                    AsyncImage(
-                        model = image.source,
-                        contentDescription = null,
+                Box {
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) { page ->
+                        val image = post.images[page]
+                        AsyncImage(
+                            model = image.source,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                        )
+                    }
+
+                    Icon(
+                        painterResource(R.drawable.baseline_photo_library_24),
+                        null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .align(Alignment.TopStart)
+                            .offset(16.dp, 16.dp)
                     )
                 }
             }
-        }
-
-        if (post.body !== null && !truncate) {
-            CompositionLocalProvider(LocalTextStyle provides TextStyle(fontSize = 14.sp)) {
-                MarkdownRenderer(content = post.body)
-            }
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp)
-        ) {
-            Badge {
-                Icon(
-                    painterResource(R.drawable.baseline_arrow_upward_24),
-                    contentDescription = null,
-                    Modifier.size(12.dp)
+        } else {
+            Column(
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(12.dp)
+            ) {
+                Text(
+                    post.title,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleSmall,
+                    lineHeight = 21.sp
                 )
-                Text(shortenNumber(post.score.toLong()))
+                if (!post.body.isNullOrEmpty())
+                    Text(
+                        post.body,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
             }
-            Badge {
-                Icon(
-                    painterResource(R.drawable.baseline_mode_comment_24),
-                    contentDescription = null,
-                    Modifier.size(12.dp)
-                )
-                Text(shortenNumber(post.numComments.toLong()))
-            }
-        }
-    }
-}
-
-@Composable
-fun Badge(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Row(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-            .padding(vertical = 4.dp, horizontal = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        CompositionLocalProvider(
-            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
-            LocalTextStyle provides TextStyle(fontSize = 10.sp)
-        ) {
-            content()
         }
     }
 }

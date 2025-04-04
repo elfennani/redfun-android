@@ -23,8 +23,10 @@ import com.elfen.redfun.data.local.models.SortingEntity
         PostEntity::class,
         PostMediaEntity::class
     ],
-    version = 1,
-    autoMigrations = [],
+    version = 2,
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2)
+    ],
     exportSchema = true
 )
 abstract class Database : RoomDatabase() {

@@ -104,10 +104,30 @@ class FeedMediator(
                         postId = post.id,
                         source = image.source,
                         width = image.width,
-                        height = image.height
+                        height = image.height,
+                        isVideo = false,
+                        duration = null,
+                        isGif = null,
+                        fallback = null,
                     )
                 }
             }
+
+            val videos = posts.filter { it.video != null }.map {
+                PostMediaEntity(
+                    id = it.video!!.source,
+                    postId = it.id,
+                    source = it.video.source,
+                    width = it.video.width,
+                    height = it.video.height,
+                    isVideo = true,
+                    duration = it.video.duration,
+                    isGif = it.video.isGif,
+                    fallback = it.video.fallback
+                )
+            }
+
+            database.postDao().insertMedia(videos)
             database.postDao().insertMedia(media)
             database.postDao().insertFeedPost(posts.map { post ->
                 FeedPostEntity(

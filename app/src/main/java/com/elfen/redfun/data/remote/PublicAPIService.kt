@@ -5,9 +5,8 @@ import com.elfen.redfun.data.remote.models.DataCollection
 import com.elfen.redfun.data.remote.models.Link
 import com.elfen.redfun.data.remote.models.Listing
 import com.elfen.redfun.data.remote.models.PostDetails
-import com.elfen.redfun.data.remote.models.Profile
+import com.elfen.redfun.data.remote.models.RemoteProfile
 import retrofit2.http.Field
-import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -39,5 +38,5 @@ interface PublicAPIService {
     ): AccessToken
 
     @GET("https://oauth.reddit.com/api/v1/me")
-    suspend fun getUserProfile(@Header("Authorization") auth: String): Profile
+    suspend fun getUserProfile(@Header("Authorization") auth: String): RemoteProfile
 }
