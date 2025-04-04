@@ -3,6 +3,7 @@ package com.elfen.redfun.data.local.dao
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import com.elfen.redfun.data.local.models.FeedPostEntity
@@ -34,7 +35,7 @@ interface PostDao {
     @Upsert
     suspend fun insertFeedPost(feedPost: FeedPostEntity)
 
-    @Upsert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFeedPost(feedPost: List<FeedPostEntity>)
 
     @Query("SELECT * FROM feed_post WHERE feed = :feed")

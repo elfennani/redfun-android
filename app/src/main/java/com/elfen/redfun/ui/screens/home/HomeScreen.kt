@@ -2,8 +2,11 @@ package com.elfen.redfun.ui.screens.home
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -20,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.elfen.redfun.ui.composables.PostCard
@@ -31,7 +40,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -52,11 +64,26 @@ internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
     return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
 }
 
+
+private operator fun PaddingValues.plus(other: PaddingValues): PaddingValues =
+    PaddingValues(
+        start = this.calculateStartPadding(LayoutDirection.Ltr) + other.calculateStartPadding(
+            LayoutDirection.Ltr
+        ),
+        end = this.calculateEndPadding(LayoutDirection.Ltr) + other.calculateEndPadding(
+            LayoutDirection.Ltr
+        ),
+        top = this.calculateTopPadding() + other.calculateTopPadding(),
+        bottom = this.calculateBottomPadding() + other.calculateBottomPadding()
+    )
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val posts = state.posts?.collectAsLazyPagingItems()
+    val lazyStaggeredGridState = rememberLazyStaggeredGridState()
     val scope = rememberCoroutineScope()
     val sortingSheetState = rememberModalBottomSheetState()
     var sortingSheet by remember { mutableStateOf(false) }
@@ -64,6 +91,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val sortingTimeSheetState = rememberModalBottomSheetState()
     var sortingTimeSheet by remember { mutableStateOf(false) }
     var tempSorting by remember { mutableStateOf<Sorting?>(null) }
+
+    LaunchedEffect(key1 = state.sorting) {
+        lazyStaggeredGridState.scrollToItem(0);
+    }
 
     Scaffold(
         topBar = {
@@ -232,19 +263,27 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 }
             }
 
-            LazyColumn(contentPadding = innerPadding) {
+            LazyVerticalStaggeredGrid(
+                contentPadding = innerPadding + PaddingValues(16.dp),
+                columns = StaggeredGridCells.Fixed(2),
+                verticalItemSpacing = 24.dp,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                state = lazyStaggeredGridState
+            ) {
 
                 items(count = posts.itemCount) { index ->
                     val post = posts[index]
                     if (post != null)
                         PostCard(
-                            modifier = Modifier.clickable { navController.navigate(PostRoute(post.id)) },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable { navController.navigate(PostRoute(post.id)) },
                             post = post
                         )
                 }
 
                 if (posts.loadState.append == LoadState.Loading) {
-                    item {
+                    item(span = StaggeredGridItemSpan.FullLine) {
                         Column(
                             modifier = Modifier
                                 .height(180.dp)
@@ -259,7 +298,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     val error = (posts.loadState.append as LoadState.Error).error
 
                     if (error is ResourceError) {
-                        item {
+                        item(span = StaggeredGridItemSpan.FullLine) {
                             Column(
                                 modifier = Modifier
                                     .defaultMinSize(minHeight = 180.dp),

@@ -61,6 +61,7 @@ class FeedMediator(
             }
         }
 
+        Log.d(TAG, "load: ${sorting.feed}");
         Log.d(TAG, "load: $loadType $loadKey")
 
         // Suspending network load via Retrofit. This doesn't need to be

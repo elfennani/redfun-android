@@ -1,3 +1,7 @@
+@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS",
+    "IMPLICIT_BOXING_IN_IDENTITY_EQUALS"
+)
+
 package com.elfen.redfun.data.remote.models
 
 import android.util.DisplayMetrics
@@ -93,7 +97,7 @@ fun Link.asDomainModel(): Post {
         author = author,
         created = Instant.fromEpochSeconds(created),
         thumbnail = if (Patterns.WEB_URL.matcher(thumbnail).matches()) thumbnail else null,
-        url = urlOverriddenByDest ?: permalink,
+        url = permalink,
         title = title,
         nsfw = over18,
         link = if (

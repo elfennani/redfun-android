@@ -1,5 +1,7 @@
 package com.elfen.redfun.ui.screens.post
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,36 +10,75 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.elfen.redfun.R
 import com.elfen.redfun.domain.models.Comment
 import com.elfen.redfun.ui.composables.CommentCard
 import com.elfen.redfun.ui.composables.PostCard
 import kotlinx.serialization.Serializable
+import androidx.core.net.toUri
 
 @Serializable
 data class PostRoute(val id: String)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltViewModel()) {
     val state = viewModel.state.collectAsState()
     val post = state.value.post
     val comments = state.value.comments ?: emptyList()
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Post")
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            post?.url?.let { url ->
+                                val intent =
+                                    Intent(Intent.ACTION_VIEW, "https://www.reddit.com$url".toUri())
+                                navController.context.startActivity(intent)
+                            }
+
+                        }
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.baseline_open_in_new_24),
+                            contentDescription = null,
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
         if (post != null)
 
             LazyColumn(contentPadding = paddingValues) {
                 item {
-                    PostCard(post = post, truncate = false)
+                    PostCard(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        post = post, truncate = false
+                    )
                 }
 
                 if (!state.value.isLoading)

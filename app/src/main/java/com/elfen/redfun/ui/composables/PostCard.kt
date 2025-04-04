@@ -104,7 +104,6 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
-            .padding(horizontal = 16.dp, vertical = 12.dp)
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
