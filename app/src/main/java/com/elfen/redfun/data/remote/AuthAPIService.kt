@@ -16,6 +16,6 @@ interface AuthAPIService {
     @GET("/comments/{id}?threaded=0&showmedia=1&raw_json=1")
     suspend fun getComments(@Path("id") id: String): PostDetails
 
-    @GET("/api/v1/me")
+    @GET("/api/v1/me?raw_json=1")
     suspend fun getUserProfile(): RemoteProfile
 }

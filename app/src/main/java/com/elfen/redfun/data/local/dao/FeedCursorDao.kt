@@ -15,4 +15,7 @@ interface FeedCursorDao {
 
     @Query("DELETE FROM feed_cursor WHERE feed = :feed AND session_id = :sessionId")
     suspend fun deleteCursor(feed: String, sessionId: String)
+
+    @Query("DELETE FROM feed_cursor")
+    suspend fun deleteAll()
 }

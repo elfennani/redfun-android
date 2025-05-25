@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.elfen.redfun.data.local.models.FeedPostEntity
 import com.elfen.redfun.data.local.models.PostEntity
@@ -46,4 +47,20 @@ interface PostDao {
 
     @Query("DELETE FROM feed_post WHERE feed = :feed")
     suspend fun deleteByFeed(feed: String)
+
+    @Query("DELETE FROM post_media")
+    suspend fun deleteAllMedia()
+
+    @Query("DELETE FROM feed_post")
+    suspend fun deleteAllFeedPosts()
+
+    @Query("DELETE FROM post")
+    suspend fun deleteAllPosts()
+
+    @Transaction
+    suspend fun deleteAll() {
+        deleteAllMedia()
+        deleteAllFeedPosts()
+        deleteAllPosts()
+    }
 }

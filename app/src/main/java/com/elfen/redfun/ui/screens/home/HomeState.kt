@@ -13,7 +13,9 @@ data class HomeState(
     val isFetchingNextPageError: Boolean = false,
     val isError: Boolean = false,
     val sorting: Sorting? = null,
+    val viewMode: ViewMode = ViewMode.MASONRY,
     // ---
     val refresh: () -> Unit = {},
-    val onSortingChanged: (Sorting) -> Unit = {}
+    val onSortingChanged: (Sorting) -> Unit = {},
+    val onViewModeChanged: (ViewMode) -> Unit = {}
 )

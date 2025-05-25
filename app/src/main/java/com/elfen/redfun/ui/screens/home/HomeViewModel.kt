@@ -1,6 +1,9 @@
 package com.elfen.redfun.ui.screens.home
 
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -17,6 +20,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cache
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,10 +32,20 @@ import kotlin.time.Instant
 private const val TAG = "HomeViewModel"
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val feedService: FeedService, private val profileService: ProfileService) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val feedService: FeedService,
+    private val profileService: ProfileService,
+    private val dataStore: DataStore<Preferences>
+) : ViewModel() {
+    val viewModeFlow = dataStore.data.map {
+        val viewModelName = it[stringPreferencesKey("view_mode")];
+        ViewMode.valueOf(viewModelName ?: ViewMode.MASONRY.name)
+    }
+
     @OptIn(ExperimentalTime::class)
     val state = feedService.getSortingFlow().map {
         val sorting = it ?: Sorting.Best
+
         HomeState(
             isLoading = false,
             posts = feedService.getFeedPaging(sorting).map {
@@ -40,9 +55,12 @@ class HomeViewModel @Inject constructor(private val feedService: FeedService, pr
                 }
             }.cachedIn(viewModelScope),
             sorting = sorting,
-            onSortingChanged = ::updateSorting
+            onSortingChanged = ::updateSorting,
+            viewMode = ViewMode.MASONRY,
+            onViewModeChanged = ::updateViewMode
         )
     }
+        .combine(viewModeFlow) { state, viewMode -> state.copy(viewMode = viewMode) }
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeState(isLoading = true))
 
     private val _sidebarState = MutableStateFlow(SidebarState(isLoading = true))
@@ -50,13 +68,14 @@ class HomeViewModel @Inject constructor(private val feedService: FeedService, pr
 
     init {
         viewModelScope.launch {
-            when(val profile = profileService.getActiveProfile()) {
+            when (val profile = profileService.getActiveProfile()) {
                 is Resource.Success -> {
                     _sidebarState.value = _sidebarState.value.copy(
                         isLoading = false,
                         user = profile.data
                     )
                 }
+
                 else -> {}
             }
         }
@@ -68,4 +87,13 @@ class HomeViewModel @Inject constructor(private val feedService: FeedService, pr
         }
     }
 
+    private fun updateViewMode(viewMode: ViewMode) {
+        viewModelScope.launch {
+            dataStore.updateData {
+                it.toMutablePreferences().apply {
+                    set(stringPreferencesKey("view_mode"), viewMode.name)
+                }
+            }
+        }
+    }
 }

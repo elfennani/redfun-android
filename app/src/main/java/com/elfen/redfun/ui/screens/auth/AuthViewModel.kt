@@ -14,18 +14,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AuthViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val sessionRepo: SessionRepo): ViewModel() {
+class AuthViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val sessionRepo: SessionRepo
+) : ViewModel() {
     val code = savedStateHandle.toRoute<AuthRoute>().code
     private val _state = MutableStateFlow<AuthState>(AuthState.Loading)
     val state = _state.asStateFlow()
 
     init {
-        if(code != null)
-        viewModelScope.launch {
-            when(val res = sessionRepo.authenticate(code)){
-                is Resource.Error -> _state.value = Error(res.message!!, retry = {})
-                is Resource.Success -> _state.value = Success
+        if (code != null)
+            viewModelScope.launch {
+                when (val res = sessionRepo.authenticate(code)) {
+                    is Resource.Error -> _state.value = Error(res.message!!, retry = {})
+                    is Resource.Success -> _state.value = Success
+                }
             }
-        }
     }
 }

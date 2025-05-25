@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -79,6 +81,7 @@ import com.elfen.redfun.domain.models.SortingTime
 import com.elfen.redfun.domain.models.toLabel
 import com.elfen.redfun.ui.composables.PostContent
 import com.elfen.redfun.ui.composables.Skeleton
+import com.elfen.redfun.ui.screens.sessions.SessionRoute
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -104,10 +107,6 @@ private operator fun PaddingValues.plus(other: PaddingValues): PaddingValues =
         bottom = this.calculateBottomPadding() + other.calculateBottomPadding()
     )
 
-enum class ViewMode(val label: String) {
-    MASONRY("Masonry"),
-    MASONRY_DETAILED("Masonry with details")
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,7 +118,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val sortingSheetState = rememberModalBottomSheetState()
     var sortingSheet by remember { mutableStateOf(false) }
 
-    var viewMode by remember { mutableStateOf(ViewMode.MASONRY) }
     val viewModeSheetState = rememberModalBottomSheetState()
     var viewModeSheet by remember { mutableStateOf(false) }
 
@@ -179,7 +177,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text("Saved", modifier = Modifier.weight(1f))
                             }
-                            TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = { }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Settings, null)
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text("Settings", modifier = Modifier.weight(1f))
@@ -205,7 +203,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                     .size(48.dp)
                                     .clip(CircleShape)
                             )
-                            IconButton(onClick = {}) {
+                            IconButton(onClick = { navController.navigate(SessionRoute) }) {
                                 Icon(painterResource(R.drawable.baseline_switch_account_24), null)
                             }
                         }
@@ -214,14 +212,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                sidebarState.user!!.fullname ?: "u/${sidebarState.user!!.username}",
+                                if (!sidebarState.user!!.fullname.isNullOrEmpty()) sidebarState.user!!.fullname!! else "u/${sidebarState.user!!.username}",
                                 style = TextStyle(
                                     fontSize = 18.sp,
                                     lineHeight = 24.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             )
-                            if (sidebarState.user!!.fullname != null)
+                            if (sidebarState.user!!.fullname.isNullOrEmpty())
                                 Text(
                                     "u/${sidebarState.user!!.username}",
                                     style = TextStyle(
@@ -312,13 +310,13 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     ) {
                         ViewMode.entries.forEach {
                             TextButton(onClick = {
-                                viewMode = it
+                                state.onViewModeChanged(it)
                                 scope.launch { viewModeSheetState.hide() }.invokeOnCompletion {
                                     if (!viewModeSheetState.isVisible) {
                                         viewModeSheet = false
                                     }
                                 }
-                            }, enabled = viewMode != it) {
+                            }, enabled = state.viewMode != it) {
                                 Text(it.label)
                             }
                         }
@@ -452,68 +450,104 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     }
                 }
 
-                LazyVerticalStaggeredGrid(
-                    contentPadding = innerPadding + PaddingValues(16.dp),
-                    columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = 24.dp,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    state = lazyStaggeredGridState
-                ) {
+                if (state.viewMode == ViewMode.SCROLLER) {
+                    val pagerState = rememberPagerState(pageCount = { posts.itemCount })
 
-                    items(count = posts.itemCount) { index ->
-                        val post = posts[index]
+                    VerticalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = innerPadding
+                    ) { page ->
+                        val post = posts[page]
                         if (post != null) {
-                            if (viewMode == ViewMode.MASONRY_DETAILED) {
-                                PostCard(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .clickable { navController.navigate(PostRoute(post.id)) },
-                                    post = post
-                                )
-                            } else {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
                                 PostContent(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp)),
                                     post = post,
+                                    autoPlay = true,
                                     onClick = {
-                                        navController.navigate(
-                                            PostRoute(post.id)
-                                        )
+                                        navController.navigate(PostRoute(post.id))
                                     }
                                 )
                             }
                         }
                     }
+                } else {
+                    LazyVerticalStaggeredGrid(
+                        contentPadding = innerPadding + PaddingValues(16.dp),
+                        columns = StaggeredGridCells.Fixed(2),
+                        verticalItemSpacing = when (state.viewMode) {
+                            ViewMode.MASONRY -> 8.dp
+                            ViewMode.MASONRY_DETAILED -> 24.dp
+                            ViewMode.SCROLLER -> 0.dp
+                        },
+                        horizontalArrangement = Arrangement.spacedBy(
+                            when (state.viewMode) {
+                                ViewMode.MASONRY -> 8.dp
+                                ViewMode.MASONRY_DETAILED -> 12.dp
+                                ViewMode.SCROLLER -> 0.dp
+                            }
+                        ),
+                        state = lazyStaggeredGridState
+                    ) {
 
-                    if (posts.loadState.append == LoadState.Loading) {
-                        item(span = StaggeredGridItemSpan.FullLine) {
-                            Column(
-                                modifier = Modifier
-                                    .height(180.dp)
-                                    .fillMaxWidth(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator()
+                        items(count = posts.itemCount) { index ->
+                            val post = posts[index]
+                            if (post != null) {
+                                if (state.viewMode == ViewMode.MASONRY_DETAILED) {
+                                    PostCard(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .clickable { navController.navigate(PostRoute(post.id)) },
+                                        post = post
+                                    )
+                                } else {
+                                    PostContent(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        post = post,
+                                        onClick = {
+                                            navController.navigate(
+                                                PostRoute(post.id)
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
-                    } else if (posts.loadState.append is LoadState.Error) {
-                        val error = (posts.loadState.append as LoadState.Error).error
 
-                        if (error is ResourceError) {
+                        if (posts.loadState.append == LoadState.Loading) {
                             item(span = StaggeredGridItemSpan.FullLine) {
                                 Column(
                                     modifier = Modifier
-                                        .defaultMinSize(minHeight = 180.dp),
+                                        .height(180.dp)
+                                        .fillMaxWidth(),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(text = "Something went wrong!")
-                                    if (state.error != null)
-                                        Text(text = error.error.message ?: "Unknown error")
+                                    CircularProgressIndicator()
                                 }
                             }
+                        } else if (posts.loadState.append is LoadState.Error) {
+                            val error = (posts.loadState.append as LoadState.Error).error
 
+                            if (error is ResourceError) {
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Column(
+                                        modifier = Modifier
+                                            .defaultMinSize(minHeight = 180.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(text = "Something went wrong!")
+                                        if (state.error != null)
+                                            Text(text = error.error.message ?: "Unknown error")
+                                    }
+                                }
+
+                            }
                         }
                     }
                 }

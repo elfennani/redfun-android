@@ -50,7 +50,7 @@ import com.elfen.redfun.domain.models.Post
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit) {
+fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, autoPlay: Boolean=false) {
     val context = LocalContext.current;
     Column(
         horizontalAlignment = Alignment.Start,
@@ -98,7 +98,7 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit) 
 
             }
         } else if (post.video != null) {
-            var videoEnabled by remember { mutableStateOf(false) }
+            var videoEnabled by remember { mutableStateOf(autoPlay) }
             if (!videoEnabled) {
                 Box(
                     modifier = Modifier
