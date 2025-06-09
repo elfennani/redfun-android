@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -137,14 +138,17 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                     player.setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
                     player.prepare()
                     player.play()
-                }
-
-                LaunchedEffect(key1 = player) {
                     player.addListener(object : androidx.media3.common.Player.Listener {
                         override fun onIsPlayingChanged(value: Boolean) {
                             isPlaying = value
                         }
                     })
+                }
+
+                DisposableEffect(key1 = player) {
+                    onDispose {
+                        player.release()
+                    }
                 }
 
                 Box(
