@@ -117,63 +117,8 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Text(
-                "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.outline,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
-            )
-        } else {
-            Text(
-                "r/${post.subreddit} • ${post.created}",
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.outline,
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    post.title,
-                    maxLines = if (truncate) 2 else Int.MAX_VALUE,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
-                    lineHeight = 21.sp
-                )
-                if (!post.body.isNullOrEmpty() && truncate)
-                    Text(
-                        post.body,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
-                        color = MaterialTheme.colorScheme.outline
-                    )
-            }
-//            if (post.thumbnail != null) {
-//                AsyncImage(
-//                    model = post.thumbnail,
-//                    contentDescription = null,
-//                    modifier = Modifier
-//                        .clip(RoundedCornerShape(8.dp))
-//                        .width(96.dp)
-//                        .aspectRatio(4f / 3f)
-//                        .background(MaterialTheme.colorScheme.surfaceVariant),
-//                    contentScale = ContentScale.Crop,
-//                )
-//            }
-        }
         if (post.link !== null && post.video == null) {
             Row(
                 modifier = Modifier
@@ -352,27 +297,36 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
             }
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp)
-        ) {
-            Badge {
-                Icon(
-                    painterResource(R.drawable.baseline_arrow_upward_24),
-                    contentDescription = null,
-                    Modifier.size(12.dp)
+        Column {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Text(
+                    "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(shortenNumber(post.score.toLong()))
-            }
-            Badge {
-                Icon(
-                    painterResource(R.drawable.baseline_mode_comment_24),
-                    contentDescription = null,
-                    Modifier.size(12.dp)
+            } else {
+                Text(
+                    "r/${post.subreddit} • ${post.created}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(shortenNumber(post.numComments.toLong()))
             }
+            Text(
+                post.title,
+                maxLines = if (truncate) 2 else Int.MAX_VALUE,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleSmall,
+                lineHeight = 21.sp
+            )
+            if (!post.body.isNullOrEmpty() && truncate)
+                Text(
+                    post.body,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 4.dp),
+                    color = MaterialTheme.colorScheme.outline
+                )
         }
     }
 }

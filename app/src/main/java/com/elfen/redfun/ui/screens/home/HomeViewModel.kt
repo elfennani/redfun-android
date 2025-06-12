@@ -1,6 +1,5 @@
 package com.elfen.redfun.ui.screens.home
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -11,23 +10,19 @@ import androidx.paging.map
 import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.ProfileService
 import com.elfen.redfun.data.local.relations.asAppModel
-import com.elfen.redfun.domain.models.MediaImage
-import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.ui.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.cache
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 private const val TAG = "HomeViewModel"
 
@@ -38,8 +33,8 @@ class HomeViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
     val viewModeFlow = dataStore.data.map {
-        val viewModelName = it[stringPreferencesKey("view_mode")];
-        ViewMode.valueOf(viewModelName ?: ViewMode.MASONRY.name)
+        val viewModelName = it[stringPreferencesKey("display_mode")];
+        DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
     }
 
     @OptIn(ExperimentalTime::class)
@@ -56,11 +51,11 @@ class HomeViewModel @Inject constructor(
             }.cachedIn(viewModelScope),
             sorting = sorting,
             onSortingChanged = ::updateSorting,
-            viewMode = ViewMode.MASONRY,
-            onViewModeChanged = ::updateViewMode
+            displayMode = DisplayMode.MASONRY,
+            onDisplayModeChanged = ::updateViewMode
         )
     }
-        .combine(viewModeFlow) { state, viewMode -> state.copy(viewMode = viewMode) }
+        .combine(viewModeFlow) { state, viewMode -> state.copy(displayMode = viewMode) }
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeState(isLoading = true))
 
     private val _sidebarState = MutableStateFlow(SidebarState(isLoading = true))
@@ -87,11 +82,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun updateViewMode(viewMode: ViewMode) {
+    private fun updateViewMode(displayMode: DisplayMode) {
         viewModelScope.launch {
             dataStore.updateData {
                 it.toMutablePreferences().apply {
-                    set(stringPreferencesKey("view_mode"), viewMode.name)
+                    set(stringPreferencesKey("display_mode"), displayMode.name)
                 }
             }
         }

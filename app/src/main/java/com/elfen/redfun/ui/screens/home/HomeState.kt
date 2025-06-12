@@ -1,6 +1,7 @@
 package com.elfen.redfun.ui.screens.home
 
 import androidx.paging.PagingData
+import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.Post
 import com.elfen.redfun.domain.models.Sorting
 import kotlinx.coroutines.flow.Flow
@@ -13,9 +14,9 @@ data class HomeState(
     val isFetchingNextPageError: Boolean = false,
     val isError: Boolean = false,
     val sorting: Sorting? = null,
-    val viewMode: ViewMode = ViewMode.MASONRY,
+    val displayMode: DisplayMode = DisplayMode.MASONRY,
     // ---
     val refresh: () -> Unit = {},
     val onSortingChanged: (Sorting) -> Unit = {},
-    val onViewModeChanged: (ViewMode) -> Unit = {}
+    val onDisplayModeChanged: (DisplayMode) -> Unit = {}
 )

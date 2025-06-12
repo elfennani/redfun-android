@@ -14,11 +14,11 @@ fun SortingTime.toParameter(): String = when(this){
 }
 
 fun SortingTime.toLabel(): String = when(this){
-    SortingTime.HOUR -> "hour"
-    SortingTime.DAY -> "day"
-    SortingTime.WEEK -> "week"
-    SortingTime.MONTH -> "month"
-    SortingTime.YEAR -> "year"
-    SortingTime.ALL_TIME -> "all time"
+    SortingTime.HOUR -> "Hour"
+    SortingTime.DAY -> "Day"
+    SortingTime.WEEK -> "Week"
+    SortingTime.MONTH -> "Month"
+    SortingTime.YEAR -> "Year"
+    SortingTime.ALL_TIME -> "All Time"
 
 }

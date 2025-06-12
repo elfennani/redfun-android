@@ -1,13 +1,10 @@
 package com.elfen.redfun.ui.screens.home
 
-import com.elfen.redfun.R
-import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -19,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -30,8 +26,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -50,40 +44,43 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.elfen.redfun.ui.composables.PostCard
-import com.elfen.redfun.ui.screens.post.PostRoute
-import kotlinx.serialization.Serializable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
+import com.elfen.redfun.R
+import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.SortingTime
+import com.elfen.redfun.domain.models.icon
 import com.elfen.redfun.domain.models.toLabel
+import com.elfen.redfun.ui.composables.PostCard
 import com.elfen.redfun.ui.composables.PostContent
 import com.elfen.redfun.ui.composables.Skeleton
+import com.elfen.redfun.ui.screens.home.composables.DisplayModeBottomSheet
+import com.elfen.redfun.ui.screens.home.composables.SortingBottomSheet
+import com.elfen.redfun.ui.screens.post.PostRoute
 import com.elfen.redfun.ui.screens.sessions.SessionRoute
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.util.Locale
 
 @Serializable
@@ -225,7 +222,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                     style = TextStyle(
                                         fontSize = 14.sp,
                                         lineHeight = 18.sp,
-                                        color = androidx.compose.ui.graphics.Color.Gray
+                                        color = Color.Gray
                                     )
                                 )
                         }
@@ -262,7 +259,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         IconButton(onClick = {
                             scope.launch { viewModeSheet = true }
                         }) {
-                            Icon(Icons.AutoMirrored.Filled.List, null)
+                            Icon(painterResource(state.displayMode.icon()), null)
                         }
                         if (!state.isLoading)
                             TextButton(onClick = { sortingSheet = true }) {
@@ -271,7 +268,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                         if (it.isLowerCase()) it.titlecase(
                                             Locale.US
                                         ) else it.toString()
-                                    })
+                                    } + when (state.sorting) {
+                                        is Sorting.Top -> " (${(state.sorting as Sorting.Top).time.toLabel()})"
+                                        is Sorting.Controversial -> " (${(state.sorting as Sorting.Controversial).time.toLabel()})"
+                                        else -> ""
+                                    },
+                                )
                             }
                     }
                 )
@@ -302,96 +304,24 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 }
             } else {
                 if (viewModeSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            viewModeSheet = false
-                        },
-                        sheetState = viewModeSheetState
-                    ) {
-                        ViewMode.entries.forEach {
-                            TextButton(onClick = {
-                                state.onViewModeChanged(it)
-                                scope.launch { viewModeSheetState.hide() }.invokeOnCompletion {
-                                    if (!viewModeSheetState.isVisible) {
-                                        viewModeSheet = false
-                                    }
-                                }
-                            }, enabled = state.viewMode != it) {
-                                Text(it.label)
-                            }
+                    DisplayModeBottomSheet(
+                        onDismissRequest = { viewModeSheet = false },
+                        current = state.displayMode,
+                        onSelectDisplayMode = { mode ->
+                            state.onDisplayModeChanged(mode)
                         }
-                    }
+                    )
                 }
                 if (sortingSheet) {
-                    ModalBottomSheet(
+                    SortingBottomSheet(
                         onDismissRequest = {
                             sortingSheet = false
                         },
-                        sheetState = sortingSheetState
-                    ) {
-                        val updateSorting = { sorting: Sorting ->
-                            state.onSortingChanged(sorting)
-                            scope.launch {
-                                sortingSheetState.hide()
-                                lazyStaggeredGridState.scrollToItem(0)
-                            }.invokeOnCompletion {
-                                if (!sortingSheetState.isVisible) {
-                                    sortingSheet = false
-                                }
-                            }
-                        }
-                        val sortings =
-                            listOf(Sorting.Best, Sorting.Hot, Sorting.New, Sorting.Rising)
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            sortings.forEach {
-                                TextButton(
-                                    onClick = { updateSorting(it) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(it.feed.replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.US
-                                        ) else it.toString()
-                                    })
-                                }
-                            }
-
-                            TextButton(
-                                onClick = {
-                                    tempSorting = Sorting.Top(SortingTime.ALL_TIME);
-                                    sortingTimeSheet = true
-                                    scope.launch { sortingSheetState.hide() }.invokeOnCompletion {
-                                        if (!sortingSheetState.isVisible) {
-                                            sortingSheet = false
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Top")
-                            }
-
-
-                            TextButton(
-                                onClick = {
-                                    tempSorting = Sorting.Controversial(SortingTime.ALL_TIME);
-                                    sortingTimeSheet = true
-                                    scope.launch { sortingSheetState.hide() }.invokeOnCompletion {
-                                        if (!sortingSheetState.isVisible) {
-                                            sortingSheet = false
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Controversial")
-                            }
-                        }
-                    }
+                        onSelectSorting = {
+                            state.onSortingChanged(it)
+                        },
+                        sorting = state.sorting,
+                    )
                 }
 
                 if (sortingTimeSheet) {
@@ -450,7 +380,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     }
                 }
 
-                if (state.viewMode == ViewMode.SCROLLER) {
+                if (state.displayMode == DisplayMode.SCROLLER) {
                     val pagerState = rememberPagerState(pageCount = { posts.itemCount })
 
                     VerticalPager(
@@ -478,43 +408,20 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     LazyVerticalStaggeredGrid(
                         contentPadding = innerPadding + PaddingValues(16.dp),
                         columns = StaggeredGridCells.Fixed(2),
-                        verticalItemSpacing = when (state.viewMode) {
-                            ViewMode.MASONRY -> 8.dp
-                            ViewMode.MASONRY_DETAILED -> 24.dp
-                            ViewMode.SCROLLER -> 0.dp
-                        },
-                        horizontalArrangement = Arrangement.spacedBy(
-                            when (state.viewMode) {
-                                ViewMode.MASONRY -> 8.dp
-                                ViewMode.MASONRY_DETAILED -> 12.dp
-                                ViewMode.SCROLLER -> 0.dp
-                            }
-                        ),
+                        verticalItemSpacing = 24.dp,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         state = lazyStaggeredGridState
                     ) {
 
                         items(count = posts.itemCount) { index ->
                             val post = posts[index]
                             if (post != null) {
-                                if (state.viewMode == ViewMode.MASONRY_DETAILED) {
-                                    PostCard(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .clickable { navController.navigate(PostRoute(post.id)) },
-                                        post = post
-                                    )
-                                } else {
-                                    PostContent(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp)),
-                                        post = post,
-                                        onClick = {
-                                            navController.navigate(
-                                                PostRoute(post.id)
-                                            )
-                                        }
-                                    )
-                                }
+                                PostCard(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .clickable { navController.navigate(PostRoute(post.id)) },
+                                    post = post
+                                )
                             }
                         }
 
