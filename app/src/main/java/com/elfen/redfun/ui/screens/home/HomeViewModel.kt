@@ -11,6 +11,7 @@ import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.ProfileService
 import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.domain.models.DisplayMode
+import com.elfen.redfun.domain.models.Feed
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.ui.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +44,7 @@ class HomeViewModel @Inject constructor(
 
         HomeState(
             isLoading = false,
-            posts = feedService.getFeedPaging(sorting).map {
+            posts = feedService.getFeedPaging(Feed.Home(sorting)).map {
                 it.map { feedPost ->
                     val post = feedPost.asAppModel()
                     post

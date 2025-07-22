@@ -12,5 +12,5 @@ data class SessionEntity(
     @ColumnInfo(name = "expires_at") val expiresAt: Long,
     val username: String,
     @ColumnInfo(name = "display_name") val displayName: String?,
-    @ColumnInfo(name = "avatar_url") val avatarUrl: String?
+    @ColumnInfo(name = "avatar_url") val avatarUrl: String?,
 )

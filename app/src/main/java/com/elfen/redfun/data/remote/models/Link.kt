@@ -110,10 +110,10 @@ fun Link.asDomainModel(): Post {
 
     if (mediaMetadata != null && (preview?.enabled === null || preview.enabled)) {
         images = mediaMetadata.values.mapNotNull { media ->
-            if (media.hlsUrl !== null) null
+            if (media.hlsUrl !== null || media.s == null) return@mapNotNull null
 
             MediaImage(
-                source = media.s!!.u ?: media.s.gif ?: return@mapNotNull null,
+                source = media.s.u ?: media.s.gif ?: return@mapNotNull null,
                 width = media.s.x,
                 height = media.s.y,
                 id = media.id!!,

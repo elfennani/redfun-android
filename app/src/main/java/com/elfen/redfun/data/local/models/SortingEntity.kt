@@ -9,7 +9,7 @@ import com.elfen.redfun.domain.models.SortingTime
 data class SortingEntity(
     @PrimaryKey val userId: String,
     val sorting: String,
-    val time: String?
+    val time: String?,
 )
 
 fun Sorting.toEntity(userId: String) = SortingEntity(

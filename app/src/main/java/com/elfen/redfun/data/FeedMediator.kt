@@ -16,8 +16,11 @@ import com.elfen.redfun.data.local.models.PostMediaEntity
 import com.elfen.redfun.data.local.relations.FeedWithPost
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
+import com.elfen.redfun.domain.models.Feed
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.getTimeParameter
+import com.elfen.redfun.domain.models.name
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -27,7 +30,8 @@ private const val TAG = "FeedMediator"
 class FeedMediator(
     val apiService: AuthAPIService,
     val database: Database,
-    val sorting: Sorting,
+    val sessionRepo: SessionRepo,
+    val feed: Feed,
 ) : RemoteMediator<Int, FeedWithPost>() {
 
     @OptIn(ExperimentalTime::class)
@@ -37,20 +41,11 @@ class FeedMediator(
     ): MediatorResult {
         val loadKey = when (loadType) {
             LoadType.REFRESH -> null
-            // In this example, you never need to prepend, since REFRESH
-            // will always load the first page in the list. Immediately
-            // return, reporting end of pagination.
             LoadType.PREPEND ->
                 return MediatorResult.Success(endOfPaginationReached = true)
 
             LoadType.APPEND -> {
                 val lastItem = state.lastItemOrNull()
-
-                // You must explicitly check if the last item is null when
-                // appending, since passing null to networkService is only
-                // valid for initial load. If lastItem is null it means no
-                // items were loaded after the initial REFRESH and there are
-                // no more items to load.
                 if (lastItem == null) {
                     return MediatorResult.Success(
                         endOfPaginationReached = true
@@ -61,25 +56,43 @@ class FeedMediator(
             }
         }
 
-        Log.d(TAG, "load: ${sorting.feed}");
-        Log.d(TAG, "load: $loadType $loadKey")
+        val response = try {
+            when (feed) {
+                is Feed.Home -> apiService.getPosts(
+                    feed.sorting.feed,
+                    loadKey,
+                    feed.sorting.getTimeParameter()
+                )
 
-        // Suspending network load via Retrofit. This doesn't need to be
-        // wrapped in a withContext(Dispatcher.IO) { ... } block since
-        // Retrofit's Coroutine CallAdapter dispatches on a worker
-        // thread.
-        val response =
-            apiService.getPosts(sorting.feed, loadKey, sorting.getTimeParameter())
+                is Feed.SavedPosts -> {
+                    val session = sessionRepo.getCurrentSession()
+
+                    if (session == null) {
+                        return MediatorResult.Error(
+                            Throwable("No active session found")
+                        )
+                    }
+                    apiService.getSavedPosts(session.username, loadKey)
+                }
+
+                is Feed.Subreddit -> apiService.getSubredditPosts(
+                    feed.subreddit,
+                    feed.sorting.feed,
+                    loadKey,
+                    feed.sorting.getTimeParameter()
+                )
+            }
+        } catch (e: Exception){
+            Log.e(TAG, "Error loading feed: ${e.message}", e)
+            return MediatorResult.Error(e)
+        }
 
 
         database.withTransaction {
             if (loadType == LoadType.REFRESH) {
-                database.postDao().deleteByFeed(sorting.feed)
+                database.postDao().deleteByFeed(feed.name())
             }
 
-            // Insert new users into database, which invalidates the
-            // current PagingData, allowing Paging to present the updates
-            // in the DB.
             val posts = response.data.children.map { it.data.asDomainModel() }
             database.postDao().insertPost(posts.map { post ->
                 PostEntity(
@@ -131,7 +144,7 @@ class FeedMediator(
             database.postDao().insertMedia(media)
             database.postDao().insertFeedPost(posts.map { post ->
                 FeedPostEntity(
-                    feed = sorting.feed,
+                    feed = feed.name(),
                     postId = post.id,
                     created = Clock.System.now().toEpochMilliseconds(),
                     cursor = response.data.after

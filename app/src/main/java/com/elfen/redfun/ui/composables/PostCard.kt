@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -110,7 +111,7 @@ fun shortenNumber(value: Long): String {
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true) {
+fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true, onClickSubreddit: () -> Unit) {
     val context = LocalContext.current
 
     Column(
@@ -275,18 +276,37 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                 val pagerState = rememberPagerState(pageCount = {
                     post.images.size
                 })
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                ) { page ->
-                    val image = post.images[page]
-                    AsyncImage(
-                        model = image.source,
-                        contentDescription = null,
+                Box {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    ) { page ->
+                        val image = post.images[page]
+                        AsyncImage(
+                            model = image.source,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                        )
+                    }
+
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                    )
+                            .align(Alignment.TopStart)
+                            .offset(8.dp, 8.dp)
+                            .background(Color.Black.copy(alpha = 0.33f), CircleShape)
+                            .padding(4.dp)
+                    ) {
+                        Icon(
+                            painterResource(
+                                R.drawable.baseline_photo_library_24
+                            ),
+                            null,
+                            tint = Color.White,
+                            modifier= Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
         }
@@ -302,7 +322,8 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                 Text(
                     "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable{ onClickSubreddit() }
                 )
             } else {
                 Text(

@@ -18,4 +18,18 @@ interface AuthAPIService {
 
     @GET("/api/v1/me?raw_json=1")
     suspend fun getUserProfile(): RemoteProfile
+
+    @GET("/user/{username}/saved?raw_json=1&type=links&limit=25")
+    suspend fun getSavedPosts(
+        @Path("username") username: String,
+        @Query("after") after: String? = null
+    ): DataCollection<Listing<DataCollection<Link>>>
+
+    @GET("/r/{subreddit}/{feed}?raw_json=1&limit=25")
+    suspend fun getSubredditPosts(
+        @Path("subreddit") subreddit: String,
+        @Path("feed") feed: String = "hot",
+        @Query("after") after: String? = null,
+        @Query("t") time: String? = null
+    ): DataCollection<Listing<DataCollection<Link>>>
 }

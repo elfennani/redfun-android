@@ -78,7 +78,9 @@ import com.elfen.redfun.ui.composables.Skeleton
 import com.elfen.redfun.ui.screens.home.composables.DisplayModeBottomSheet
 import com.elfen.redfun.ui.screens.home.composables.SortingBottomSheet
 import com.elfen.redfun.ui.screens.post.PostRoute
+import com.elfen.redfun.ui.screens.saved.SavedRoute
 import com.elfen.redfun.ui.screens.sessions.SessionRoute
+import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.util.Locale
@@ -92,7 +94,7 @@ internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
 }
 
 
-private operator fun PaddingValues.plus(other: PaddingValues): PaddingValues =
+operator fun PaddingValues.plus(other: PaddingValues): PaddingValues =
     PaddingValues(
         start = this.calculateStartPadding(LayoutDirection.Ltr) + other.calculateStartPadding(
             LayoutDirection.Ltr
@@ -169,16 +171,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         }
                         HorizontalDivider()
                         Column {
-                            TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = { navController.navigate(SavedRoute) }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(painterResource(R.drawable.baseline_bookmark_24), null)
                                 Spacer(modifier = Modifier.width(16.dp))
-                                Text("Saved", modifier = Modifier.weight(1f))
+                                Text("Saved Posts", modifier = Modifier.weight(1f))
                             }
-                            TextButton(onClick = { }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.Settings, null)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Settings", modifier = Modifier.weight(1f))
-                            }
+//                            TextButton(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+//                                Icon(Icons.Default.Settings, null)
+//                                Spacer(modifier = Modifier.width(16.dp))
+//                                Text("Settings", modifier = Modifier.weight(1f))
+//                            }
                         }
                     }
                 } else {
@@ -228,10 +230,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         }
                         HorizontalDivider()
                         Column {
-                            TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                            TextButton(onClick = {
+                                navController.navigate(SavedRoute)
+                            }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(painterResource(R.drawable.baseline_bookmark_24), null)
                                 Spacer(modifier = Modifier.width(16.dp))
-                                Text("Saved", modifier = Modifier.weight(1f))
+                                Text("Saved Posts", modifier = Modifier.weight(1f))
                             }
                             TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
                                 Icon(Icons.Default.Settings, null)
@@ -420,7 +424,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
                                         .clickable { navController.navigate(PostRoute(post.id)) },
-                                    post = post
+                                    post = post,
+                                    onClickSubreddit = {
+                                        navController.navigate(SubredditRoute(post.subreddit))
+                                    }
                                 )
                             }
                         }

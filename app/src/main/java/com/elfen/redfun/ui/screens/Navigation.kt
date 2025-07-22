@@ -30,8 +30,12 @@ import com.elfen.redfun.ui.screens.login.LoginRoute
 import com.elfen.redfun.ui.screens.login.LoginScreen
 import com.elfen.redfun.ui.screens.post.PostRoute
 import com.elfen.redfun.ui.screens.post.PostScreen
+import com.elfen.redfun.ui.screens.saved.SavedRoute
+import com.elfen.redfun.ui.screens.saved.SavedScreen
 import com.elfen.redfun.ui.screens.sessions.SessionRoute
 import com.elfen.redfun.ui.screens.sessions.SessionScreen
+import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
+import com.elfen.redfun.ui.screens.subreddit.SubredditScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
@@ -101,6 +105,12 @@ fun Navigation() {
             }
             composable<PostRoute> {
                 PostScreen(navController)
+            }
+            composable<SavedRoute> {
+                SavedScreen(navController)
+            }
+            composable<SubredditRoute> {
+                SubredditScreen(navController = navController)
             }
             composable<AuthRoute>(
                 deepLinks = listOf(

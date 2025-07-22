@@ -20,8 +20,10 @@ import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.PublicAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.models.Comment
+import com.elfen.redfun.domain.models.Feed
 import com.elfen.redfun.domain.models.Post
 import com.elfen.redfun.domain.models.Sorting
+import com.elfen.redfun.domain.models.name
 import com.elfen.redfun.ui.utils.Resource
 import com.elfen.redfun.ui.utils.resourceOf
 import kotlinx.coroutines.flow.Flow
@@ -46,15 +48,15 @@ class FeedService @Inject constructor(
     private val cachedPosts: MutableMap<String, List<Post>> = mutableMapOf()
 
     @OptIn(ExperimentalPagingApi::class)
-    fun getFeedPaging(sorting: Sorting) = Pager(
+    fun getFeedPaging(feed: Feed) = Pager(
         config = PagingConfig(
             pageSize = 25,
             prefetchDistance = 12,
             initialLoadSize = 25
         ),
-        remoteMediator = FeedMediator(apiService, database, sorting)
+        remoteMediator = FeedMediator(apiService, database, sessionRepo, feed)
     ) {
-        database.postDao().getPagingFeedPosts(sorting.feed)
+        database.postDao().getPagingFeedPosts(feed.name())
     }.flow
 
     suspend fun getPosts(

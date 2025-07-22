@@ -33,6 +33,9 @@ import com.elfen.redfun.ui.composables.CommentCard
 import com.elfen.redfun.ui.composables.PostCard
 import kotlinx.serialization.Serializable
 import androidx.core.net.toUri
+import com.elfen.redfun.ui.screens.saved.SavedRoute
+import com.elfen.redfun.ui.screens.saved.SavedScreen
+import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
 
 @Serializable
 data class PostRoute(val id: String)
@@ -77,7 +80,10 @@ fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltView
                     PostCard(
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 12.dp),
-                        post = post, truncate = false
+                        post = post, truncate = false,
+                        onClickSubreddit = {
+                            navController.navigate(SubredditRoute(post.subreddit))
+                        }
                     )
                 }
 
