@@ -15,6 +15,8 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -130,7 +132,8 @@ fun Navigation() {
                     )
                 }
             }
-        }
+        },
+        contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
         NavHost(
             navController = navController,

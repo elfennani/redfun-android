@@ -144,4 +144,8 @@ object AppModules {
     @Provides
     @Singleton
     fun providePostDao(db: Database) = db.postDao()
+
+    @Provides
+    @Singleton
+    fun provideProfileDao(db: Database) = db.profileDao()
 }

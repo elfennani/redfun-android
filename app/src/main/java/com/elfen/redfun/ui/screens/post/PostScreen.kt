@@ -1,7 +1,6 @@
 package com.elfen.redfun.ui.screens.post
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,19 +20,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.elfen.redfun.R
-import com.elfen.redfun.domain.models.Comment
 import com.elfen.redfun.ui.composables.CommentCard
-import com.elfen.redfun.ui.composables.PostCard
+import com.elfen.redfun.ui.composables.CompactPost
 import kotlinx.serialization.Serializable
 import androidx.core.net.toUri
-import com.elfen.redfun.ui.screens.saved.SavedRoute
-import com.elfen.redfun.ui.screens.saved.SavedScreen
+import com.elfen.redfun.ui.composables.PostCard
 import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
 
 @Serializable
@@ -77,7 +72,7 @@ fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltView
 
             LazyColumn(contentPadding = paddingValues) {
                 item {
-                    PostCard(
+                    PostCard (
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         post = post,

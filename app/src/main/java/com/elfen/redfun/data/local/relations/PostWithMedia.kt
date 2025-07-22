@@ -53,5 +53,6 @@ fun PostWithMedia.asAppModel() = Post(
             isGif = it.isGif == true,
             fallback = it.fallback
         )
-    }
+    },
+    subredditIcon = post.subredditIcon
 )

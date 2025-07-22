@@ -107,7 +107,8 @@ class FeedMediator(
                     url = post.url,
                     title = post.title,
                     nsfw = post.nsfw,
-                    link = post.link
+                    link = post.link,
+                    subredditIcon = post.subredditIcon
                 )
             })
             val media = posts.filter { (it.images?.size ?: 0) > 0 }.flatMap { post ->
@@ -142,12 +143,13 @@ class FeedMediator(
 
             database.postDao().insertMedia(videos)
             database.postDao().insertMedia(media)
-            database.postDao().insertFeedPost(posts.map { post ->
+            database.postDao().insertFeedPost(posts.mapIndexed { index,post ->
                 FeedPostEntity(
                     feed = feed.name(),
                     postId = post.id,
                     created = Clock.System.now().toEpochMilliseconds(),
-                    cursor = response.data.after
+                    cursor = response.data.after,
+                    index = index,
                 )
             })
         }

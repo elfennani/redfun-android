@@ -42,7 +42,7 @@ interface PostDao {
     @Query("SELECT * FROM feed_post WHERE feed = :feed")
     suspend fun getFeedPosts(feed: String): List<FeedWithPost>
 
-    @Query("SELECT * FROM feed_post WHERE feed = :feed ORDER BY created ASC")
+    @Query("SELECT * FROM feed_post WHERE feed = :feed ORDER BY feed_post.created,feed_post.`index` ASC")
     fun getPagingFeedPosts(feed: String): PagingSource<Int, FeedWithPost>
 
     @Query("DELETE FROM feed_post WHERE feed = :feed")

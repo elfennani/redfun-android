@@ -1,7 +1,10 @@
+@file:Suppress("IMPLICIT_BOXING_IN_IDENTITY_EQUALS")
+
 package com.elfen.redfun.ui.composables
 
 import android.annotation.SuppressLint
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,13 +21,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Comment
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Comment
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,37 +42,80 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import java.time.Duration
+import kotlin.math.abs
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.domain.models.Post
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
+
+
+@OptIn(ExperimentalTime::class)
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatDistanceToNowStrict(date: Instant): String {
+    val now = Clock.System.now()
+    val duration = Duration.between(date.toJavaInstant(), now.toJavaInstant())
+    val seconds = abs(duration.seconds)
+
+    return when {
+        seconds < 60 -> "$seconds second${if (seconds != 1L) "s" else ""}"
+        seconds < 3600 -> {
+            val minutes = seconds / 60
+            "$minutes minute${if (minutes != 1L) "s" else ""}"
+        }
+
+        seconds < 86400 -> {
+            val hours = seconds / 3600
+            "$hours hour${if (hours != 1L) "s" else ""}"
+        }
+
+        seconds < 2592000 -> {
+            val days = seconds / 86400
+            "$days day${if (days != 1L) "s" else ""}"
+        }
+
+        seconds < 31536000 -> {
+            val months = seconds / 2592000
+            "$months month${if (months != 1L) "s" else ""}"
+        }
+
+        else -> {
+            val years = seconds / 31536000
+            "$years year${if (years != 1L) "s" else ""}"
+        }
+    }
+}
 
 @SuppressLint("DefaultLocale")
-fun Long.shortenNumber(): String {
+fun shortenNumber(value: Long): String {
     return when {
-        this >= 1_000_000_000 -> String.format("%.1fB", this / 1_000_000_000.0)
-        this >= 1_000_000 -> String.format("%.1fM", this / 1_000_000.0)
-        this >= 1_000 -> String.format("%.1fK", this / 1_000.0)
-        else -> this.toString()
+        value >= 1_000_000_000 -> String.format("%.1fB", value / 1_000_000_000.0)
+        value >= 1_000_000 -> String.format("%.1fM", value / 1_000_000.0)
+        value >= 1_000 -> String.format("%.1fK", value / 1_000.0)
+        else -> value.toString()
     }.replace(".0", "") // Remove trailing ".0" if not needed
 }
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun PostCard(
+fun CompactPost(
     modifier: Modifier = Modifier,
     post: Post,
     showSubreddit: Boolean = true,
     onClickSubreddit: () -> Unit,
 ) {
     val context = LocalContext.current
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(6.dp)
 
     Column(
         horizontalAlignment = Alignment.Start,
@@ -76,52 +123,6 @@ fun PostCard(
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable { onClickSubreddit() }
-        ) {
-            AsyncImage(
-                model = post.subredditIcon,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy((-2).dp, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.Start
-            ) {
-                if (showSubreddit) {
-                    Text(
-                        "r/${post.subreddit}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Text(
-                        "u/${post.author} · ${formatDistanceToNowStrict(post.created)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
-        Text(
-            post.title,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium,
-        )
         if (post.video != null) {
             var videoEnabled by remember { mutableStateOf(false) }
             if (!videoEnabled) {
@@ -279,62 +280,51 @@ fun PostCard(
                 }
             }
         }
-        
-        Row(
-            modifier = Modifier.padding(top=8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(-2.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.Start
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                        CircleShape
-                    )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Icon(
-                    painterResource(R.drawable.baseline_arrow_upward_24),
-                    "upvote",
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            if(showSubreddit){
                 Text(
-                    post.score.toLong().shortenNumber(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 4.dp),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    "r/${post.subreddit}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable { onClickSubreddit() },
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.25.sp
                 )
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
-                        CircleShape
-                    )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.Comment,
-                    "upvote",
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    post.numComments.toLong().shortenNumber(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 4.dp),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+
+            Text(
+                post.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleSmall,
+                lineHeight = 18.sp,
+                fontSize = 12.sp,
+            )
+        }
+    }
+}
+
+@Composable
+fun Badge(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Row(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+            .padding(vertical = 4.dp, horizontal = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CompositionLocalProvider(
+            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
+            LocalTextStyle provides TextStyle(fontSize = 10.sp)
+        ) {
+            content()
         }
     }
 }

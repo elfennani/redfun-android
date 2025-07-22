@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "392d6cf3eec36c8134e9ed25bde8c501",
+    "identityHash": "86d322d60bdccb99e6c108ce2baa2903",
     "entities": [
       {
         "tableName": "session",
@@ -154,7 +154,7 @@
       },
       {
         "tableName": "post",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `body` TEXT, `subreddit` TEXT NOT NULL, `score` INTEGER NOT NULL, `numComments` INTEGER NOT NULL, `author` TEXT NOT NULL, `created` INTEGER NOT NULL, `thumbnail` TEXT, `url` TEXT NOT NULL, `title` TEXT NOT NULL, `nsfw` INTEGER NOT NULL, `link` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `body` TEXT, `subreddit` TEXT NOT NULL, `subredditIcon` TEXT, `score` INTEGER NOT NULL, `numComments` INTEGER NOT NULL, `author` TEXT NOT NULL, `created` INTEGER NOT NULL, `thumbnail` TEXT, `url` TEXT NOT NULL, `title` TEXT NOT NULL, `nsfw` INTEGER NOT NULL, `link` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -172,6 +172,11 @@
             "columnName": "subreddit",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "subredditIcon",
+            "columnName": "subredditIcon",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "score",
@@ -235,7 +240,7 @@
       },
       {
         "tableName": "post_media",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `postId` TEXT NOT NULL, `source` TEXT NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `postId` TEXT NOT NULL, `source` TEXT NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `isVideo` INTEGER, `duration` INTEGER, `isGif` INTEGER, `fallback` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -266,6 +271,26 @@
             "columnName": "height",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "isVideo",
+            "columnName": "isVideo",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isGif",
+            "columnName": "isGif",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fallback",
+            "columnName": "fallback",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -278,7 +303,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '392d6cf3eec36c8134e9ed25bde8c501')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '86d322d60bdccb99e6c108ce2baa2903')"
     ]
   }
 }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -28,22 +27,13 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +45,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,35 +54,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil3.compose.AsyncImage
 import com.elfen.redfun.R
+import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.SortingTime
-import com.elfen.redfun.domain.models.icon
 import com.elfen.redfun.domain.models.toLabel
-import com.elfen.redfun.ui.composables.PostCard
+import com.elfen.redfun.ui.composables.CompactPost
 import com.elfen.redfun.ui.composables.PostContent
-import com.elfen.redfun.ui.composables.Skeleton
+import com.elfen.redfun.ui.composables.PostList
 import com.elfen.redfun.ui.screens.home.composables.DisplayModeBottomSheet
 import com.elfen.redfun.ui.screens.home.composables.SortingBottomSheet
 import com.elfen.redfun.ui.screens.post.PostRoute
-import com.elfen.redfun.ui.screens.saved.SavedRoute
-import com.elfen.redfun.ui.screens.sessions.SessionRoute
 import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.util.Locale
@@ -128,21 +115,23 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val sortingSheetState = rememberModalBottomSheetState()
     var sortingSheet by remember { mutableStateOf(false) }
 
-    val viewModeSheetState = rememberModalBottomSheetState()
     var viewModeSheet by remember { mutableStateOf(false) }
 
     val sortingTimeSheetState = rememberModalBottomSheetState()
     var sortingTimeSheet by remember { mutableStateOf(false) }
     var tempSorting by remember { mutableStateOf<Sorting?>(null) }
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val sidebarState by viewModel.sidebarState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val displayMode by context.dataStore.data.map {
+        val viewModelName = it[stringPreferencesKey("display_mode")];
+        DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
+    }.collectAsState(DisplayMode.MASONRY)
 
     Scaffold(
         topBar = {
             Box(){
                 TopAppBar(
-                    title = { Text("Feed", style = MaterialTheme.typography.headlineLarge) },
+                    title = { Text("Feed") },
                     actions = {
                         Row(
                             modifier = Modifier
@@ -191,14 +180,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                     },
-                    windowInsets = WindowInsets.statusBars.add(
-                        WindowInsets(
-                            top = 8.dp,
-                            bottom = 8.dp
-                        )
-                    ),
                 )
-//                HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
             }
         }
     ) { innerPadding ->
@@ -303,87 +285,13 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 }
             }
 
-            if (state.displayMode == DisplayMode.SCROLLER) {
-                val pagerState = rememberPagerState(pageCount = { posts.itemCount })
-
-                VerticalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = innerPadding
-                ) { page ->
-                    val post = posts[page]
-                    if (post != null) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            PostContent(
-                                post = post,
-                                autoPlay = true,
-                                onClick = {
-                                    navController.navigate(PostRoute(post.id))
-                                }
-                            )
-                        }
-                    }
-                }
-            } else {
-                LazyVerticalStaggeredGrid(
-                    contentPadding = innerPadding + PaddingValues(16.dp),
-                    columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = 16.dp,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    state = lazyStaggeredGridState
-                ) {
-
-                    items(count = posts.itemCount) { index ->
-                        val post = posts[index]
-                        if (post != null) {
-                            PostCard(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .clickable { navController.navigate(PostRoute(post.id)) },
-                                post = post,
-                                onClickSubreddit = {
-                                    navController.navigate(SubredditRoute(post.subreddit))
-                                }
-                            )
-                        }
-                    }
-
-                    if (posts.loadState.append == LoadState.Loading) {
-                        item(span = StaggeredGridItemSpan.FullLine) {
-                            Column(
-                                modifier = Modifier
-                                    .height(180.dp)
-                                    .fillMaxWidth(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    } else if (posts.loadState.append is LoadState.Error) {
-                        val error = (posts.loadState.append as LoadState.Error).error
-
-                        if (error is ResourceError) {
-                            item(span = StaggeredGridItemSpan.FullLine) {
-                                Column(
-                                    modifier = Modifier
-                                        .defaultMinSize(minHeight = 180.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(text = "Something went wrong!")
-                                    if (state.error != null)
-                                        Text(text = error.error.message ?: "Unknown error")
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
+            PostList(
+                modifier = Modifier.padding(innerPadding),
+                posts = posts,
+                navController = navController,
+                displayMode = displayMode,
+                showSubreddit = true,
+            )
         }
     }
 }

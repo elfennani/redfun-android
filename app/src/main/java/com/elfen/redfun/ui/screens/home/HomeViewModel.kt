@@ -59,24 +59,6 @@ class HomeViewModel @Inject constructor(
         .combine(viewModeFlow) { state, viewMode -> state.copy(displayMode = viewMode) }
         .stateIn(viewModelScope, SharingStarted.Lazily, HomeState(isLoading = true))
 
-    private val _sidebarState = MutableStateFlow(SidebarState(isLoading = true))
-    val sidebarState = _sidebarState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            when (val profile = profileService.getActiveProfile()) {
-                is Resource.Success -> {
-                    _sidebarState.value = _sidebarState.value.copy(
-                        isLoading = false,
-                        user = profile.data
-                    )
-                }
-
-                else -> {}
-            }
-        }
-    }
-
     private fun updateSorting(sorting: Sorting) {
         viewModelScope.launch {
             feedService.setSorting(sorting)

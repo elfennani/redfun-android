@@ -9,6 +9,7 @@ data class PostEntity(
     val id: String,
     val body: String?,
     val subreddit: String,
+    val subredditIcon: String? = null,
     val score: Int,
     val numComments: Int,
     val author: String,

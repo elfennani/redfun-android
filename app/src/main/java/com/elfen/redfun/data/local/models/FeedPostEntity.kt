@@ -9,5 +9,6 @@ data class FeedPostEntity @OptIn(ExperimentalTime::class) constructor(
     val feed: String,
     val postId: String,
     val created: Long = Clock.System.now().toEpochMilliseconds(),
-    val cursor: String? = null
+    val cursor: String? = null,
+    val index: Int? = null
 )

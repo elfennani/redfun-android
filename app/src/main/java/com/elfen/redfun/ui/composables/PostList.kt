@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -32,11 +34,11 @@ import com.elfen.redfun.domain.models.Post
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.ui.screens.home.plus
 import com.elfen.redfun.ui.screens.post.PostRoute
-import com.elfen.redfun.ui.screens.saved.SavedRoute
 import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
 
 @Composable
 fun PostList(
+  modifier: Modifier = Modifier,
   posts: LazyPagingItems<Post>,
   navController: NavController,
   displayMode: DisplayMode,
@@ -50,7 +52,7 @@ fun PostList(
 
     VerticalPager(
       state = pagerState,
-      modifier = Modifier.fillMaxSize(),
+      modifier = modifier.fillMaxSize(),
       contentPadding = innerPadding
     ) { page ->
       val post = posts[page]
@@ -69,19 +71,76 @@ fun PostList(
         }
       }
     }
-  } else {
+  } else if(displayMode == DisplayMode.LIST){
+    LazyColumn(
+      contentPadding = innerPadding,
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+      modifier = modifier
+    ) {
+      items(count = posts.itemCount) { index ->
+        val post = posts[index]
+        if (post != null) {
+          PostCard (
+            modifier = Modifier
+              .clip(RoundedCornerShape(4.dp))
+              .clickable { navController.navigate(PostRoute(post.id)) }
+              .padding(16.dp),
+            post = post,
+            onClickSubreddit = {
+              navController.navigate(SubredditRoute(post.subreddit))
+            },
+            showSubreddit = showSubreddit
+          )
+        }
+      }
+
+      if (posts.loadState.append == LoadState.Loading) {
+        item{
+          Column(
+            modifier = Modifier
+              .height(180.dp)
+              .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            CircularProgressIndicator()
+          }
+        }
+      } else if (posts.loadState.append is LoadState.Error) {
+        val error = (posts.loadState.append as LoadState.Error).error
+
+        if (error is ResourceError) {
+          item{
+            Column(
+              modifier = Modifier
+                .defaultMinSize(minHeight = 180.dp),
+              verticalArrangement = Arrangement.Center,
+              horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+              Text(text = "Something went wrong!")
+              if (error.message != null)
+                Text(text = error.error.message ?: "Unknown error")
+            }
+          }
+
+        }
+      }
+    }
+  }
+  else {
     LazyVerticalStaggeredGrid(
       contentPadding = innerPadding + PaddingValues(16.dp),
       columns = StaggeredGridCells.Fixed(2),
       verticalItemSpacing = 16.dp,
       horizontalArrangement = Arrangement.spacedBy(16.dp),
-      state = lazyStaggeredGridState
+      state = lazyStaggeredGridState,
+      modifier = modifier
     ) {
 
       items(count = posts.itemCount) { index ->
         val post = posts[index]
         if (post != null) {
-          PostCard(
+          CompactPost(
             modifier = Modifier
               .clip(RoundedCornerShape(4.dp))
               .clickable { navController.navigate(PostRoute(post.id)) },

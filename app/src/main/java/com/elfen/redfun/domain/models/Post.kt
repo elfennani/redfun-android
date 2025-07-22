@@ -8,6 +8,7 @@ data class Post(
     val id: String,
     val body: String?,
     val subreddit: String,
+    val subredditIcon: String?,
     val score: Int,
     val numComments: Int,
     val author: String,

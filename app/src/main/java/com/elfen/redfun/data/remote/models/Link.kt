@@ -36,6 +36,7 @@ data class Link(
     @SerializedName("thumbnail_height") val thumbnailHeight: Int?,
     @SerializedName("thumbnail_width") val thumbnailWidth: Int?,
     @SerializedName("is_video") val isVideo: Boolean?,
+    @SerializedName("sr_detail") val subredditDetails: SubredditDetails,
     val media: Media?
 )
 
@@ -142,9 +143,15 @@ fun Link.asDomainModel(): Post {
             Patterns.WEB_URL.matcher(urlOverriddenByDest).matches()
         ) urlOverriddenByDest else null,
         images = images.ifEmpty { null },
-        video = video
+        video = video,
+        subredditIcon = subredditDetails.communityIcon?.ifEmpty { null } ?: subredditDetails.iconImg?.ifEmpty { null },
     )
 }
+
+data class SubredditDetails(
+    @SerializedName("community_icon") val communityIcon: String?,
+    @SerializedName("icon_img") val iconImg: String?,
+)
 
 data class Media(
     @SerializedName("reddit_video") val redditVideo: RedditVideo,
