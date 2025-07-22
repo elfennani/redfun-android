@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.elfen.redfun.ui.screens.Navigation
-import com.elfen.redfun.ui.theme.RedFunTheme
+import com.elfen.redfun.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 const val ANIM_DURATION_MILLIS = 150
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            RedFunTheme {
+            AppTheme {
                 Navigation()
             }
         }

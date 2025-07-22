@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.icon
-import com.elfen.redfun.ui.theme.RedFunTheme
+import com.elfen.redfun.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,7 +158,7 @@ private fun RowScope.DisplayModeItem(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DisplayModeViewPreview() {
-    RedFunTheme {
+    AppTheme {
         DisplayModeView(
             current = DisplayMode.SCROLLER,
             onSelectDisplayMode = {}

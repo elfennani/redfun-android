@@ -1,5 +1,6 @@
 package com.elfen.redfun.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,14 +8,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -25,6 +30,7 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
@@ -34,15 +40,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -127,148 +138,31 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val sidebarState by viewModel.sidebarState.collectAsStateWithLifecycle()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                if (sidebarState.isLoading) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .width(270.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Skeleton(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                            )
-                            Skeleton(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(CircleShape)
-                            )
-                        }
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Skeleton(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.7f)
-                                    .height(24.dp)
-                            )
-                            Skeleton(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.5f)
-                                    .height(18.dp)
-                            )
-                        }
-                        HorizontalDivider()
-                        Column {
-                            TextButton(onClick = { navController.navigate(SavedRoute) }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(painterResource(R.drawable.baseline_bookmark_24), null)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Saved Posts", modifier = Modifier.weight(1f))
-                            }
-//                            TextButton(onClick = { }, modifier = Modifier.fillMaxWidth()) {
-//                                Icon(Icons.Default.Settings, null)
-//                                Spacer(modifier = Modifier.width(16.dp))
-//                                Text("Settings", modifier = Modifier.weight(1f))
-//                            }
-                        }
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .width(270.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            AsyncImage(
-                                model = sidebarState.user?.icon,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                            )
-                            IconButton(onClick = { navController.navigate(SessionRoute) }) {
-                                Icon(painterResource(R.drawable.baseline_switch_account_24), null)
-                            }
-                        }
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                if (!sidebarState.user!!.fullname.isNullOrEmpty()) sidebarState.user!!.fullname!! else "u/${sidebarState.user!!.username}",
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    lineHeight = 24.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            if (sidebarState.user!!.fullname.isNullOrEmpty())
-                                Text(
-                                    "u/${sidebarState.user!!.username}",
-                                    style = TextStyle(
-                                        fontSize = 14.sp,
-                                        lineHeight = 18.sp,
-                                        color = Color.Gray
-                                    )
-                                )
-                        }
-                        HorizontalDivider()
-                        Column {
-                            TextButton(onClick = {
-                                navController.navigate(SavedRoute)
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(painterResource(R.drawable.baseline_bookmark_24), null)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Saved Posts", modifier = Modifier.weight(1f))
-                            }
-                            TextButton(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.Settings, null)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text("Settings", modifier = Modifier.weight(1f))
-                            }
-                        }
-                    }
-                }
-            }
-        },
-    ) {
-        Scaffold(
-            topBar = {
+    Scaffold(
+        topBar = {
+            Box(){
                 TopAppBar(
-                    title = { Text("Home") },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
-                            Icon(Icons.Default.Menu, null)
-                        }
-                    },
+                    title = { Text("Feed", style = MaterialTheme.typography.headlineLarge) },
                     actions = {
-                        IconButton(onClick = {
-                            scope.launch { viewModeSheet = true }
-                        }) {
-                            Icon(painterResource(state.displayMode.icon()), null)
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                                .size(44.dp)
+                                .clickable {
+                                    scope.launch { viewModeSheet = true }
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(painterResource(R.drawable.outline_view_quilt_24), null, modifier = Modifier.size(28.dp))
                         }
-                        if (!state.isLoading)
-                            TextButton(onClick = { sortingSheet = true }) {
-                                Text(
-                                    (state.sorting ?: Sorting.Best).feed.replaceFirstChar {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text((state.sorting ?: Sorting.Best).feed.replaceFirstChar {
                                         if (it.isLowerCase()) it.titlecase(
                                             Locale.US
                                         ) else it.toString()
@@ -276,192 +170,216 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                         is Sorting.Top -> " (${(state.sorting as Sorting.Top).time.toLabel()})"
                                         is Sorting.Controversial -> " (${(state.sorting as Sorting.Controversial).time.toLabel()})"
                                         else -> ""
+                                    })
+                                }
+                            },
+                            state = rememberTooltipState()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                                    .size(44.dp)
+                                    .clickable {
+                                        sortingSheet = true
                                     },
-                                )
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(painterResource(R.drawable.outline_sort_24), null, modifier = Modifier.size(28.dp))
                             }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                    },
+                    windowInsets = WindowInsets.statusBars.add(
+                        WindowInsets(
+                            top = 8.dp,
+                            bottom = 8.dp
+                        )
+                    ),
+                )
+                HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
+            }
+        }
+    ) { innerPadding ->
+
+        if ((state.isLoading && !state.isFetchingNextPage) || posts == null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (state.isError && !state.isFetchingNextPageError) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = "Something went wrong!")
+                if (state.error != null)
+                    Text(text = state.error!!)
+            }
+        } else {
+            if (viewModeSheet) {
+                DisplayModeBottomSheet(
+                    onDismissRequest = { viewModeSheet = false },
+                    current = state.displayMode,
+                    onSelectDisplayMode = { mode ->
+                        state.onDisplayModeChanged(mode)
                     }
                 )
             }
-        ) { innerPadding ->
+            if (sortingSheet) {
+                SortingBottomSheet(
+                    onDismissRequest = {
+                        sortingSheet = false
+                    },
+                    onSelectSorting = {
+                        state.onSortingChanged(it)
+                    },
+                    sorting = state.sorting,
+                )
+            }
 
-            if ((state.isLoading && !state.isFetchingNextPage) || posts == null) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+            if (sortingTimeSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        sortingTimeSheet = false
+                    },
+                    sheetState = sortingTimeSheetState
                 ) {
-                    CircularProgressIndicator()
-                }
-            } else if (state.isError && !state.isFetchingNextPageError) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Something went wrong!")
-                    if (state.error != null)
-                        Text(text = state.error!!)
-                }
-            } else {
-                if (viewModeSheet) {
-                    DisplayModeBottomSheet(
-                        onDismissRequest = { viewModeSheet = false },
-                        current = state.displayMode,
-                        onSelectDisplayMode = { mode ->
-                            state.onDisplayModeChanged(mode)
-                        }
-                    )
-                }
-                if (sortingSheet) {
-                    SortingBottomSheet(
-                        onDismissRequest = {
-                            sortingSheet = false
-                        },
-                        onSelectSorting = {
-                            state.onSortingChanged(it)
-                        },
-                        sorting = state.sorting,
-                    )
-                }
+                    val updateSorting = { sorting: Sorting ->
 
-                if (sortingTimeSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            sortingTimeSheet = false
-                        },
-                        sheetState = sortingTimeSheetState
-                    ) {
-                        val updateSorting = { sorting: Sorting ->
-
-                            state.onSortingChanged(sorting)
-                            scope.launch {
-                                lazyStaggeredGridState.scrollToItem(0)
-                                sortingSheetState.hide()
-                            }.invokeOnCompletion {
-                                if (!sortingSheetState.isVisible) {
-                                    sortingSheet = false
-                                }
+                        state.onSortingChanged(sorting)
+                        scope.launch {
+                            lazyStaggeredGridState.scrollToItem(0)
+                            sortingSheetState.hide()
+                        }.invokeOnCompletion {
+                            if (!sortingSheetState.isVisible) {
+                                sortingSheet = false
                             }
                         }
-                        val times = SortingTime.entries.toTypedArray()
+                    }
+                    val times = SortingTime.entries.toTypedArray()
 
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            times.forEach {
-                                TextButton(
-                                    onClick = {
-                                        if (tempSorting != null) {
-                                            if (tempSorting is Sorting.Top) {
-                                                updateSorting(Sorting.Top(it))
-                                            } else if (tempSorting is Sorting.Controversial) {
-                                                updateSorting(Sorting.Controversial(it))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        times.forEach {
+                            TextButton(
+                                onClick = {
+                                    if (tempSorting != null) {
+                                        if (tempSorting is Sorting.Top) {
+                                            updateSorting(Sorting.Top(it))
+                                        } else if (tempSorting is Sorting.Controversial) {
+                                            updateSorting(Sorting.Controversial(it))
+                                        }
+                                    }
+
+                                    scope.launch { sortingSheetState.hide() }
+                                        .invokeOnCompletion {
+                                            if (!sortingSheetState.isVisible) {
+                                                sortingTimeSheet = false
                                             }
                                         }
-
-                                        scope.launch { sortingSheetState.hide() }
-                                            .invokeOnCompletion {
-                                                if (!sortingSheetState.isVisible) {
-                                                    sortingTimeSheet = false
-                                                }
-                                            }
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(it.toLabel().replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.US
-                                        ) else it.toString()
-                                    })
-                                }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(it.toLabel().replaceFirstChar {
+                                    if (it.isLowerCase()) it.titlecase(
+                                        Locale.US
+                                    ) else it.toString()
+                                })
                             }
                         }
                     }
                 }
+            }
 
-                if (state.displayMode == DisplayMode.SCROLLER) {
-                    val pagerState = rememberPagerState(pageCount = { posts.itemCount })
+            if (state.displayMode == DisplayMode.SCROLLER) {
+                val pagerState = rememberPagerState(pageCount = { posts.itemCount })
 
-                    VerticalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = innerPadding
-                    ) { page ->
-                        val post = posts[page]
-                        if (post != null) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                PostContent(
-                                    post = post,
-                                    autoPlay = true,
-                                    onClick = {
-                                        navController.navigate(PostRoute(post.id))
-                                    }
-                                )
-                            }
+                VerticalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = innerPadding
+                ) { page ->
+                    val post = posts[page]
+                    if (post != null) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            PostContent(
+                                post = post,
+                                autoPlay = true,
+                                onClick = {
+                                    navController.navigate(PostRoute(post.id))
+                                }
+                            )
                         }
                     }
-                } else {
-                    LazyVerticalStaggeredGrid(
-                        contentPadding = innerPadding + PaddingValues(16.dp),
-                        columns = StaggeredGridCells.Fixed(2),
-                        verticalItemSpacing = 24.dp,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        state = lazyStaggeredGridState
-                    ) {
+                }
+            } else {
+                LazyVerticalStaggeredGrid(
+                    contentPadding = innerPadding + PaddingValues(16.dp),
+                    columns = StaggeredGridCells.Fixed(2),
+                    verticalItemSpacing = 24.dp,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    state = lazyStaggeredGridState
+                ) {
 
-                        items(count = posts.itemCount) { index ->
-                            val post = posts[index]
-                            if (post != null) {
-                                PostCard(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .clickable { navController.navigate(PostRoute(post.id)) },
-                                    post = post,
-                                    onClickSubreddit = {
-                                        navController.navigate(SubredditRoute(post.subreddit))
-                                    }
-                                )
+                    items(count = posts.itemCount) { index ->
+                        val post = posts[index]
+                        if (post != null) {
+                            PostCard(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .clickable { navController.navigate(PostRoute(post.id)) },
+                                post = post,
+                                onClickSubreddit = {
+                                    navController.navigate(SubredditRoute(post.subreddit))
+                                }
+                            )
+                        }
+                    }
+
+                    if (posts.loadState.append == LoadState.Loading) {
+                        item(span = StaggeredGridItemSpan.FullLine) {
+                            Column(
+                                modifier = Modifier
+                                    .height(180.dp)
+                                    .fillMaxWidth(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator()
                             }
                         }
+                    } else if (posts.loadState.append is LoadState.Error) {
+                        val error = (posts.loadState.append as LoadState.Error).error
 
-                        if (posts.loadState.append == LoadState.Loading) {
+                        if (error is ResourceError) {
                             item(span = StaggeredGridItemSpan.FullLine) {
                                 Column(
                                     modifier = Modifier
-                                        .height(180.dp)
-                                        .fillMaxWidth(),
+                                        .defaultMinSize(minHeight = 180.dp),
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    CircularProgressIndicator()
+                                    Text(text = "Something went wrong!")
+                                    if (state.error != null)
+                                        Text(text = error.error.message ?: "Unknown error")
                                 }
                             }
-                        } else if (posts.loadState.append is LoadState.Error) {
-                            val error = (posts.loadState.append as LoadState.Error).error
 
-                            if (error is ResourceError) {
-                                item(span = StaggeredGridItemSpan.FullLine) {
-                                    Column(
-                                        modifier = Modifier
-                                            .defaultMinSize(minHeight = 180.dp),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(text = "Something went wrong!")
-                                        if (state.error != null)
-                                            Text(text = error.error.message ?: "Unknown error")
-                                    }
-                                }
-
-                            }
                         }
                     }
                 }
