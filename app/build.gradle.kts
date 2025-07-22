@@ -79,6 +79,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.material)
+    implementation(libs.material3)
+    implementation(libs.androidx.material.icons.extended)
 
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)
