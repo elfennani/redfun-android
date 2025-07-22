@@ -65,6 +65,7 @@ fun PostCard(
     modifier: Modifier = Modifier,
     post: Post,
     showSubreddit: Boolean = true,
+    truncate: Boolean = true,
     onClickSubreddit: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -118,8 +119,8 @@ fun PostCard(
         }
         Text(
             post.title,
-            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+            maxLines = if(truncate) 2 else Int.MAX_VALUE,
             style = MaterialTheme.typography.titleMedium,
         )
         if (post.video != null) {

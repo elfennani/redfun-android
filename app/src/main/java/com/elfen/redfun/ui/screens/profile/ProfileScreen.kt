@@ -148,7 +148,7 @@ private fun ProfileScreen(
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(if (LocalInspectionMode.current) Color.LightGray else Color.Transparent)
+                                .background(if (LocalInspectionMode.current) Color.LightGray else Color.Transparent, RoundedCornerShape(24.dp))
                                 .size(96.dp)
                                 .border(
                                     6.dp, MaterialTheme.colorScheme.background,

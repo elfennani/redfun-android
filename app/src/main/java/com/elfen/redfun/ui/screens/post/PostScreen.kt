@@ -78,7 +78,8 @@ fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltView
                         post = post,
                         onClickSubreddit = {
                             navController.navigate(SubredditRoute(post.subreddit))
-                        }
+                        },
+                        truncate = false
                     )
                 }
 
