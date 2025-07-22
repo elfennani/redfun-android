@@ -97,6 +97,7 @@ fun SubredditScreen(
         posts = posts,
         navController = navController,
         displayMode = displayMode,
+        showSubreddit = false,
       )
     }
   }

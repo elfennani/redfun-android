@@ -43,14 +43,6 @@ fun SavedScreen(
         title = {
           Text("Saved Posts")
         },
-        navigationIcon = {
-          IconButton(
-            onClick = { navController.popBackStack() }
-          ) {
-            Icon(Icons.AutoMirrored.Default.ArrowBack, null)
-          }
-        },
-
       )
     }
   ) {

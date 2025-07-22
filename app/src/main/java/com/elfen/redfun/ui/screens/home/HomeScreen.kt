@@ -198,7 +198,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         )
                     ),
                 )
-                HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
+//                HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
             }
         }
     ) { innerPadding ->
@@ -331,7 +331,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 LazyVerticalStaggeredGrid(
                     contentPadding = innerPadding + PaddingValues(16.dp),
                     columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = 24.dp,
+                    verticalItemSpacing = 16.dp,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     state = lazyStaggeredGridState
                 ) {

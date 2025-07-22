@@ -40,7 +40,8 @@ fun PostList(
   posts: LazyPagingItems<Post>,
   navController: NavController,
   displayMode: DisplayMode,
-  lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState()
+  lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+  showSubreddit: Boolean = true
 ) {
   val innerPadding = PaddingValues(0.dp)
 
@@ -72,7 +73,7 @@ fun PostList(
     LazyVerticalStaggeredGrid(
       contentPadding = innerPadding + PaddingValues(16.dp),
       columns = StaggeredGridCells.Fixed(2),
-      verticalItemSpacing = 24.dp,
+      verticalItemSpacing = 16.dp,
       horizontalArrangement = Arrangement.spacedBy(16.dp),
       state = lazyStaggeredGridState
     ) {
@@ -87,7 +88,8 @@ fun PostList(
             post = post,
             onClickSubreddit = {
               navController.navigate(SubredditRoute(post.subreddit))
-            }
+            },
+            showSubreddit = showSubreddit
           )
         }
       }

@@ -4,10 +4,8 @@ package com.elfen.redfun.ui.composables
 
 import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,14 +43,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import java.time.Duration
 import kotlin.math.abs
-import androidx.core.net.toUri
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
@@ -111,61 +108,27 @@ fun shortenNumber(value: Long): String {
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true, onClickSubreddit: () -> Unit) {
+fun PostCard(
+    modifier: Modifier = Modifier,
+    post: Post,
+    showSubreddit: Boolean = true,
+    onClickSubreddit: () -> Unit,
+) {
     val context = LocalContext.current
+    val shape = RoundedCornerShape(6.dp)
 
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        if (post.link !== null && post.video == null) {
-            Row(
-                modifier = Modifier
-                    .border(1.dp, color = Color.LightGray, CircleShape)
-                    .clip(CircleShape)
-                    .clickable {
-                        try {
-                            context.startActivity(
-                                android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    post.link.toUri()
-                                )
-                            )
-                        } catch (e: Exception) {
-                            Log.e("PostCompact", "Error opening link", e)
-                        }
-                    }
-                    .padding(vertical = 8.dp, horizontal = 16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = post.link,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Icon(
-                    painterResource(id = R.drawable.baseline_link_24),
-                    contentDescription = null,
-                    tint = Color.Gray
-                )
-
-            }
-        }
-
         if (post.video != null) {
             var videoEnabled by remember { mutableStateOf(false) }
             if (!videoEnabled) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(shape)
                         .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat())
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clickable { videoEnabled = true },
@@ -175,7 +138,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                         model = post.thumbnail,
                         contentDescription = null,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(shape)
                             .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat()),
                         contentScale = ContentScale.Crop
                     )
@@ -215,7 +178,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(shape)
                         .clickable {
                             if (player.isPlaying) {
                                 player.pause()
@@ -228,7 +191,7 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
                     AndroidView(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(shape)
                             .aspectRatio(
                                 post.video.width.toFloat() / post.video.height.toFloat()
                             ),
@@ -262,92 +225,88 @@ fun PostCard(modifier: Modifier = Modifier, post: Post, truncate: Boolean = true
         }
 
         if (!post.images.isNullOrEmpty()) {
-            if (post.images.size == 1) {
-                val image = post.images.first()
-                AsyncImage(
-                    model = image.source,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .fillMaxWidth()
-                        .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                )
-            } else {
-                val pagerState = rememberPagerState(pageCount = {
-                    post.images.size
-                })
-                Box {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                    ) { page ->
-                        val image = post.images[page]
-                        AsyncImage(
-                            model = image.source,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                        )
-                    }
-
-                    Box(
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape),
+                contentAlignment = Alignment.BottomStart
+            ) {
+                if (post.images.size == 1) {
+                    val image = post.images.first()
+                    AsyncImage(
+                        model = image.source,
+                        contentDescription = null,
                         modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(8.dp, 8.dp)
-                            .background(Color.Black.copy(alpha = 0.33f), CircleShape)
-                            .padding(4.dp)
-                    ) {
-                        Icon(
-                            painterResource(
-                                R.drawable.baseline_photo_library_24
-                            ),
-                            null,
-                            tint = Color.White,
-                            modifier= Modifier.size(12.dp)
-                        )
+                            .clip(shape)
+                            .fillMaxWidth()
+                            .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                    )
+                } else {
+                    val pagerState = rememberPagerState(pageCount = {
+                        post.images.size
+                    })
+                    Box {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.clip(shape)
+                        ) { page ->
+                            val image = post.images[page]
+                            AsyncImage(
+                                model = image.source,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(8.dp, 8.dp)
+                                .background(Color.Black.copy(alpha = 0.33f), CircleShape)
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                painterResource(
+                                    R.drawable.baseline_photo_library_24
+                                ),
+                                null,
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
                     }
                 }
             }
         }
-
-        if (post.body !== null && !truncate) {
-            CompositionLocalProvider(LocalTextStyle provides TextStyle(fontSize = 14.sp)) {
-                MarkdownRenderer(content = post.body)
-            }
-        }
-
-        Column {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(-2.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.Start
+        ) {
+            if(showSubreddit){
                 Text(
-                    "r/${post.subreddit} • ${formatDistanceToNowStrict(post.created)}",
+                    "r/${post.subreddit}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable{ onClickSubreddit() }
-                )
-            } else {
-                Text(
-                    "r/${post.subreddit} • ${post.created}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier = Modifier.clickable { onClickSubreddit() },
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.25.sp
                 )
             }
+
             Text(
                 post.title,
-                maxLines = if (truncate) 2 else Int.MAX_VALUE,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
-                lineHeight = 21.sp
+                lineHeight = 18.sp,
+                fontSize = 12.sp,
             )
-            if (!post.body.isNullOrEmpty() && truncate)
-                Text(
-                    post.body,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 4.dp),
-                    color = MaterialTheme.colorScheme.outline
-                )
         }
     }
 }

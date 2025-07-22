@@ -80,7 +80,7 @@ fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltView
                     PostCard(
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 12.dp),
-                        post = post, truncate = false,
+                        post = post,
                         onClickSubreddit = {
                             navController.navigate(SubredditRoute(post.subreddit))
                         }

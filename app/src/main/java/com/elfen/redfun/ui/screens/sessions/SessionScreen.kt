@@ -44,6 +44,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.data.local.models.SessionEntity
+import com.elfen.redfun.ui.screens.home.HomeRoute
 import com.elfen.redfun.ui.screens.login.initiateAuth
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -95,7 +96,7 @@ fun SessionScreen(navController: NavHostController, viewModel: SessionViewModel 
                             .fillMaxWidth()
                             .clickable {
                                 viewModel.changeSession(session.userId)
-                                navController.popBackStack()
+                                navController.clearBackStack(HomeRoute)
                             },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
