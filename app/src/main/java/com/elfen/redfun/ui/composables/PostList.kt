@@ -1,5 +1,6 @@
 package com.elfen.redfun.ui.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.paging.LoadState
@@ -52,11 +54,11 @@ fun PostList(
 
     VerticalPager(
       state = pagerState,
-      modifier = modifier.fillMaxSize(),
+      modifier = modifier.background(Color.Black).fillMaxSize(),
       contentPadding = innerPadding
     ) { page ->
       val post = posts[page]
-      if (post != null) {
+      if (post != null && (post.images?.isNotEmpty() == true || post.video != null)) {
         Box(
           contentAlignment = Alignment.Center,
           modifier = Modifier.fillMaxSize()

@@ -103,7 +103,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
             if (!videoEnabled) {
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
                         .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat())
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .combinedClickable(onLongClick = { onClick() }, onClick = {
@@ -115,7 +114,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                         model = post.thumbnail,
                         contentDescription = null,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
                             .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat()),
                         contentScale = ContentScale.Crop
                     )
@@ -154,7 +152,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
                         .clickable {
                             if (player.isPlaying) {
                                 player.pause()
@@ -167,7 +164,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                     AndroidView(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
                             .aspectRatio(
                                 post.video.width.toFloat() / post.video.height.toFloat()
                             ),
@@ -205,7 +201,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                     model = image.source,
                     contentDescription = null,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .fillMaxWidth()
                         .aspectRatio(image.width.toFloat() / image.height.toFloat())
@@ -218,7 +213,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) { page ->
                         val image = post.images[page]
@@ -247,7 +241,6 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                 modifier = Modifier
                     .background(
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-                        RoundedCornerShape(8.dp)
                     )
                     .padding(12.dp)
             ) {

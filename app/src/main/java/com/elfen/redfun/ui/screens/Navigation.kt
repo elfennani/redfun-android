@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -133,11 +134,15 @@ fun Navigation() {
                 }
             }
         },
-        contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = if (session == null) LoginRoute else HomeRoute,
+            modifier = Modifier.padding(
+                bottom = innerPadding.calculateBottomPadding() - WindowInsets.navigationBars.getBottom(
+                    LocalDensity.current
+                ).dp
+            ),
             enterTransition = {
                 fadeIn() + slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Left,
