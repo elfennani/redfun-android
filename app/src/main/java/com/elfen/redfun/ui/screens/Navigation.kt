@@ -125,42 +125,37 @@ fun Navigation() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize()
-                    .conditionalHeight(
-                        !navBarShown,
-                        (WindowInsets.navigationBars.getBottom(density) - 24).dp
-                    ),
-                containerColor = if (navBarShown) {
-                    NavigationBarDefaults.containerColor
-                } else {
-                    NavigationBarDefaults.containerColor.copy(alpha = 0f)
-                },
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+            AnimatedVisibility(
+                visible = navBarShown,
+                modifier = Modifier.fillMaxWidth()
+            ){
+                NavigationBar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination
 
-                Destination.entries.forEach { destination ->
-                    NavigationBarItem(
-                        alwaysShowLabel = false,
-                        icon = {
-                            Icon(painterResource(destination.icon), destination.label)
-                        },
-                        selected = navController.currentDestination?.hasRoute(destination.route::class) == true,
-                        onClick = {
-                            if (currentDestination?.route != destination.route) {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                    Destination.entries.forEach { destination ->
+                        NavigationBarItem(
+                            alwaysShowLabel = false,
+                            icon = {
+                                Icon(painterResource(destination.icon), destination.label)
+                            },
+                            selected = navController.currentDestination?.hasRoute(destination.route::class) == true,
+                            onClick = {
+                                if (currentDestination?.route != destination.route) {
+                                    navController.navigate(destination.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
         },

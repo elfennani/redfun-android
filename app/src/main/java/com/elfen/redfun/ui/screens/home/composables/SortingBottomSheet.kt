@@ -23,6 +23,8 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import com.elfen.redfun.data.local.dataStore
+import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.SortingTime
 import com.elfen.redfun.domain.models.getTimeParameter
@@ -48,7 +55,14 @@ fun SortingBottomSheet(
     onSelectSorting: (Sorting) -> Unit = {},
     sorting: Sorting? = null,
 ) {
+    val context = LocalContext.current
+    val dataStore = context.dataStore
     val coroutineScope = rememberCoroutineScope()
+    val isSheetVisible by remember {
+        derivedStateOf {
+            sheetState.isVisible
+        }
+    }
     var tempSorting by remember {
         mutableStateOf<Sorting?>(
             when (sorting) {
@@ -149,8 +163,10 @@ fun SortingBottomSheet(
                     onClick = { tempSorting = Sorting.Top(SortingTime.ALL_TIME); },
                     colors = if (isActive(Sorting.Top(SortingTime.ALL_TIME)) || tempSorting is Sorting.Top) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
                 ) {
-                    Text("Top",
-                        style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        "Top",
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
 
                 Button(
@@ -159,8 +175,10 @@ fun SortingBottomSheet(
                     },
                     colors = if (isActive(Sorting.Controversial(SortingTime.ALL_TIME)) || tempSorting is Sorting.Controversial) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
                 ) {
-                    Text("Controversial",
-                        style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        "Controversial",
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
 
@@ -196,8 +214,10 @@ fun SortingBottomSheet(
                                 },
                                 colors = if (tempSorting?.getTimeParameter() == time.toParameter()) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
                             ) {
-                                Text(time.toLabel(),
-                                    style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    time.toLabel(),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
                     }

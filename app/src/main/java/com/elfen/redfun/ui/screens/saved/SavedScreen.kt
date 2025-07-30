@@ -1,6 +1,9 @@
 package com.elfen.redfun.ui.screens.saved
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -8,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -23,6 +27,8 @@ import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.ui.composables.PostList
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +41,9 @@ fun SavedScreen(
     val viewModelName = it[stringPreferencesKey("display_mode")];
     DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
   }.collectAsState(DisplayMode.MASONRY)
+    val navBarShown by context.dataStore.data.map {
+        it[booleanPreferencesKey("nav_bar_shown")] ?: true
+    }.collectAsState(true)
   val posts = viewModel.posts.collectAsLazyPagingItems()
 
   Scaffold(
@@ -44,7 +53,10 @@ fun SavedScreen(
           Text("Saved Posts")
         },
       )
-    }
+    },
+    contentWindowInsets = if (navBarShown) ScaffoldDefaults.contentWindowInsets.only(
+      WindowInsetsSides.Top
+    ) else WindowInsets(0.dp)
   ) {
     Column(
       modifier = Modifier.padding(it)

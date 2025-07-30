@@ -33,6 +33,9 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +72,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -139,7 +143,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
     Scaffold(
         topBar = {
-            if(displayMode == DisplayMode.SCROLLER) return@Scaffold
+            if (displayMode == DisplayMode.SCROLLER) return@Scaffold
             TopAppBar(
                 title = { Text("Feed") },
                 actions = {
@@ -201,7 +205,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             )
         },
         floatingActionButton = {
-            if(displayMode == DisplayMode.SCROLLER){
+            if (displayMode == DisplayMode.SCROLLER) {
                 Column(
                     modifier = Modifier
                         .padding(8.dp),
@@ -231,10 +235,26 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                             contentDescription = "Change Sorting",
                         )
                     }
+
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                dataStore.edit {
+                                    it[booleanPreferencesKey("nav_bar_shown")] = !navBarShown
+                                }
+                            }
+                        },
+                    ) {
+                        Icon(
+                            if (navBarShown) Icons.Default.ArrowDropDown
+                            else Icons.Default.ArrowDropUp,
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
         },
-        contentWindowInsets = if(navBarShown) ScaffoldDefaults.contentWindowInsets.only(
+        contentWindowInsets = if (navBarShown) ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top
         ) else WindowInsets(0.dp)
     ) { innerPadding ->

@@ -23,20 +23,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.domain.models.DisplayMode
 import com.elfen.redfun.domain.models.Post
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.ui.screens.home.plus
 import com.elfen.redfun.ui.screens.post.PostRoute
 import com.elfen.redfun.ui.screens.subreddit.SubredditRoute
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 @Composable
 fun PostList(
@@ -48,6 +55,10 @@ fun PostList(
   showSubreddit: Boolean = true
 ) {
   val innerPadding = PaddingValues(0.dp)
+  val context = LocalContext.current
+  val shouldMute by context.dataStore.data.mapNotNull {
+    return@mapNotNull it[booleanPreferencesKey("shouldMute")]
+  }.collectAsState(true)
 
   if (displayMode == DisplayMode.SCROLLER) {
     val pagerState = rememberPagerState(pageCount = { posts.itemCount })
@@ -58,19 +69,19 @@ fun PostList(
       contentPadding = innerPadding
     ) { page ->
       val post = posts[page]
-      if (post != null && (post.images?.isNotEmpty() == true || post.video != null)) {
-        Box(
-          contentAlignment = Alignment.Center,
-          modifier = Modifier.fillMaxSize()
-        ) {
-          PostContent(
+      if (post != null) {
+        ScrollerPost(
+            modifier = modifier,
             post = post,
-            autoPlay = true,
-            onClick = {
-              navController.navigate(PostRoute(post.id))
-            }
-          )
-        }
+            showSubreddit = showSubreddit,
+            onPostClick = {
+                navController.navigate(PostRoute(post.id))
+            },
+            onClickSubreddit = {
+                navController.navigate(SubredditRoute(post.subreddit))
+            },
+            shouldMute = shouldMute
+        )
       }
     }
   } else if(displayMode == DisplayMode.LIST){

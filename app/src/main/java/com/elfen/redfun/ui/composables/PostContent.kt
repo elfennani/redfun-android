@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -18,10 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,20 +45,103 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.domain.models.Post
 
+@Composable
+fun rememberExoPlayer(
+    post: Post,
+    muted: Boolean = false
+): ExoPlayer {
+    val context = LocalContext.current
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            volume = if (muted) 0f else 1f
+            if (post.video != null)
+                setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
+            prepare()
+        }
+    }
+
+    LaunchedEffect(key1 = post.video) {
+        if (post.video != null) {
+            player.setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
+            player.prepare()
+            player.playWhenReady = true
+        }
+    }
+
+    DisposableEffect(key1 = player) {
+        onDispose {
+            player.release()
+        }
+    }
+
+    return player
+}
+
+@Composable
+fun rememberIsPlaying(player: ExoPlayer): Boolean {
+    val isPlaying = remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = player) {
+        player.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onIsPlayingChanged(isPlayingValue: Boolean) {
+                isPlaying.value = isPlayingValue
+            }
+        })
+    }
+
+    return isPlaying.value
+}
+
+@androidx.annotation.OptIn(UnstableApi::class)
+@Composable
+fun rememberVideoPositionPercent(
+    player: ExoPlayer,
+): Float {
+    val position = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(key1 = player) {
+        player.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == androidx.media3.common.Player.STATE_READY) {
+                    val duration = player.duration.toFloat()
+                    if (duration > 0) {
+                        position.floatValue = player.currentPosition / duration
+                    }
+                }
+            }
+        })
+    }
+
+    return position.floatValue
+}
+
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, autoPlay: Boolean=false) {
+fun PostContent(
+    modifier: Modifier = Modifier,
+    post: Post,
+    onClick: () -> Unit,
+    autoPlay: Boolean = false,
+    player: ExoPlayer = rememberExoPlayer(post),
+    isScroller: Boolean = false
+) {
     val context = LocalContext.current;
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .clickable { onClick() }
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .fillMaxHeight(if(isScroller && post.video != null) 1f else 0f),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (post.link !== null && post.video == null) {
@@ -128,30 +212,11 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                     }
                 }
             } else {
-                val player =
-                    remember { androidx.media3.exoplayer.ExoPlayer.Builder(context).build() }
-                var isPlaying by remember { mutableStateOf(true) }
-
-                LaunchedEffect(key1 = player) {
-                    player.setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
-                    player.prepare()
-                    player.play()
-                    player.addListener(object : androidx.media3.common.Player.Listener {
-                        override fun onIsPlayingChanged(value: Boolean) {
-                            isPlaying = value
-                        }
-                    })
-                }
-
-                DisposableEffect(key1 = player) {
-                    onDispose {
-                        player.release()
-                    }
-                }
+                val isPlaying = rememberIsPlaying(player)
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .clickable {
                             if (player.isPlaying) {
                                 player.pause()
@@ -161,22 +226,39 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(
-                                post.video.width.toFloat() / post.video.height.toFloat()
-                            ),
-                        factory = { context ->
-                            PlayerView(context).apply {
-                                this.player = player
-                                this.useController = false
+                    val aspectRatio = post.video.width.toFloat() / post.video.height.toFloat()
+                    if (isScroller)
+                        AndroidView(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            factory = { context ->
+                                PlayerView(context).apply {
+                                    this.player = player
+                                    this.useController = false
+                                    this.resizeMode = if(aspectRatio < 0.6f) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                }
+                            },
+                            update = { playerView ->
+                                playerView.player = player
                             }
-                        },
-                        update = { playerView ->
-                            playerView.player = player
-                        }
-                    )
+                        )
+                    else
+                        AndroidView(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(
+                                    post.video.width.toFloat() / post.video.height.toFloat()
+                                ),
+                            factory = { context ->
+                                PlayerView(context).apply {
+                                    this.player = player
+                                    this.useController = false
+                                }
+                            },
+                            update = { playerView ->
+                                playerView.player = player
+                            }
+                        )
 
                     if (!isPlaying) {
                         Box(
@@ -237,29 +319,7 @@ fun PostContent(modifier: Modifier = Modifier, post: Post, onClick: () -> Unit, 
                 }
             }
         } else {
-            Column(
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-                    )
-                    .padding(12.dp)
-            ) {
-                Text(
-                    post.title,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
-                    lineHeight = 21.sp
-                )
-                if (!post.body.isNullOrEmpty())
-                    Text(
-                        post.body,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
-                        color = MaterialTheme.colorScheme.outline
-                    )
-            }
+
         }
     }
 }
