@@ -1,7 +1,10 @@
 package com.elfen.redfun.ui.screens.home
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -66,11 +69,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun updateViewMode(displayMode: DisplayMode) {
+        Log.d(TAG, "updateViewMode: $displayMode (${displayMode == DisplayMode.MASONRY})")
         viewModelScope.launch {
-            dataStore.updateData {
-                it.toMutablePreferences().apply {
-                    set(stringPreferencesKey("display_mode"), displayMode.name)
-                }
+            dataStore.edit {
+                it[stringPreferencesKey("display_mode")] = displayMode.name
+
+                it[booleanPreferencesKey("nav_bar_shown")] = displayMode != DisplayMode.SCROLLER
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -66,6 +68,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -125,10 +128,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
     val density = LocalDensity.current
     val context = LocalContext.current
-    val displayMode by context.dataStore.data.map {
+    val dataStore = context.dataStore
+    val displayMode by dataStore.data.map {
         val viewModelName = it[stringPreferencesKey("display_mode")];
         DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
     }.collectAsState(DisplayMode.MASONRY)
+    val navBarShown by dataStore.data
+        .map { it[booleanPreferencesKey("nav_bar_shown")] ?: true }
+        .collectAsState(initial = true)
 
     Scaffold(
         topBar = {
@@ -197,7 +204,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             if(displayMode == DisplayMode.SCROLLER){
                 Column(
                     modifier = Modifier
-                        .offset(y = (-56).dp)
                         .padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -228,12 +234,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 }
             }
         },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.apply {
-            if (displayMode == DisplayMode.SCROLLER) {
-                exclude(WindowInsets.statusBars)
-                exclude(WindowInsets.ime)
-            }
-        }
+        contentWindowInsets = if(navBarShown) ScaffoldDefaults.contentWindowInsets.only(
+            WindowInsetsSides.Top
+        ) else WindowInsets(0.dp)
     ) { innerPadding ->
 
         if ((state.isLoading && !state.isFetchingNextPage) || posts == null) {

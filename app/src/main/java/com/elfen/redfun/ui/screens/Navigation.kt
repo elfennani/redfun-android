@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateContentSize
 import androidx.annotation.IntegerRes
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -16,20 +18,28 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -86,6 +97,15 @@ enum class Destination(val label: String, val route: Any, @DrawableRes val icon:
     PROFILE("Profile", ProfileRoute, R.drawable.outline_person_24)
 }
 
+fun Modifier.conditionalHeight(condition: Boolean, height: androidx.compose.ui.unit.Dp): Modifier {
+    return if (condition) {
+        this.height(height)
+    } else {
+        this
+    }
+}
+
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,28 +113,38 @@ fun Navigation() {
     val navController = rememberNavController()
     val spec = remember { tween<Float>(ANIM_DURATION_MILLIS, easing = FastOutSlowInEasing) }
     val specInt = remember { tween<IntOffset>(ANIM_DURATION_MILLIS, easing = FastOutSlowInEasing) }
+    val density = LocalDensity.current
     val context = LocalContext.current
     val dataStore = context.dataStore
     val session =
         runBlocking { dataStore.data.map { it[stringPreferencesKey("session_id")] }.first() }
+    val navBarShown by dataStore.data
+        .map { it[booleanPreferencesKey("nav_bar_shown")] ?: true }
+        .collectAsState(initial = true)
 
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize()
+                    .conditionalHeight(
+                        !navBarShown,
+                        (WindowInsets.navigationBars.getBottom(density) - 24).dp
+                    ),
+                containerColor = if (navBarShown) {
+                    NavigationBarDefaults.containerColor
+                } else {
+                    NavigationBarDefaults.containerColor.copy(alpha = 0f)
+                },
+            ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
                 Destination.entries.forEach { destination ->
                     NavigationBarItem(
                         alwaysShowLabel = false,
-                        label = {
-                            Text(
-                                text = destination.label,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
                         icon = {
                             Icon(painterResource(destination.icon), destination.label)
                         },
@@ -134,15 +164,14 @@ fun Navigation() {
                 }
             }
         },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(
+            WindowInsetsSides.Bottom
+        )
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = if (session == null) LoginRoute else HomeRoute,
-            modifier = Modifier.padding(
-                bottom = innerPadding.calculateBottomPadding() - WindowInsets.navigationBars.getBottom(
-                    LocalDensity.current
-                ).dp
-            ),
+            modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 fadeIn() + slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Left,
