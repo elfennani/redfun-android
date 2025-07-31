@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -48,10 +49,11 @@ fun CommentCard(comment: Comment) {
             ) {
                 Text(
                     "u/${comment.author} • ${formatDistanceToNowStrict(comment.created)}",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.alpha(0.75f)
                 )
 
-                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodySmall) {
+                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodyMedium) {
                     MarkdownRenderer(content = comment.body)
                 }
 

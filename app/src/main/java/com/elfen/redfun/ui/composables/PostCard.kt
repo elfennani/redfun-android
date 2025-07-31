@@ -22,9 +22,11 @@ import androidx.compose.material.icons.automirrored.outlined.Comment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Comment
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -123,6 +125,21 @@ fun PostCard(
             maxLines = if(truncate) 2 else Int.MAX_VALUE,
             style = MaterialTheme.typography.titleMedium,
         )
+        if(!post.body.isNullOrEmpty()){
+            if(truncate)
+                Text(
+                    post.body,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 3,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+            else {
+                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodyMedium) {
+                    MarkdownRenderer(content = post.body)
+                }
+            }
+        }
         if (post.video != null) {
             var videoEnabled by remember { mutableStateOf(false) }
             if (!videoEnabled) {

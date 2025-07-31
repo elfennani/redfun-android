@@ -237,7 +237,7 @@ fun PostContent(
                                     this.player = player
                                     this.useController = false
                                     this.resizeMode =
-                                        if (aspectRatio < 0.6f) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                        if (aspectRatio < 0.75f) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT
                                 }
                             },
                             update = { playerView ->
