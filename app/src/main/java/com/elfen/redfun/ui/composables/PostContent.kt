@@ -143,7 +143,7 @@ fun PostContent(
             .clickable { onClick() }
             .fillMaxWidth()
             .fillMaxHeight(if (isScroller) 1f else 0f),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp, alignment = if(isScroller) Alignment.CenterVertically else Alignment.Top)
     ) {
         if (post.link !== null && post.video == null) {
             Row(

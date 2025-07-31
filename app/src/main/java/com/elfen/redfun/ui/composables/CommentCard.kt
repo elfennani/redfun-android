@@ -48,14 +48,10 @@ fun CommentCard(comment: Comment) {
             ) {
                 Text(
                     "u/${comment.author} • ${formatDistanceToNowStrict(comment.created)}",
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp
-                    )
+                    style = MaterialTheme.typography.labelSmall
                 )
 
-                CompositionLocalProvider(LocalTextStyle provides TextStyle(fontSize = 14.sp, lineHeight = 21.sp)) {
+                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodySmall) {
                     MarkdownRenderer(content = comment.body)
                 }
 
