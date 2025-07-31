@@ -57,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.elfen.redfun.domain.models.Post
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,6 +66,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
+import com.elfen.redfun.R
 import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.ui.utils.rememberPlayerTimelineState
 import kotlinx.coroutines.launch
@@ -135,7 +137,7 @@ fun ScrollerPost(
                 if (timelineState.duration > 0L) {
                     IconButton(onClick = {
                         exoPlayer.volume = if (timelineState.isMuted) 1f else 0f
-                        coroutineScope.launch{
+                        coroutineScope.launch {
                             context.dataStore.edit {
                                 it[booleanPreferencesKey("shouldMute")] = !timelineState.isMuted
                             }
@@ -144,6 +146,29 @@ fun ScrollerPost(
                         Icon(
                             if (timelineState.isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                             null
+                        )
+                    }
+                }
+                if ((post.images?.size ?: 0) > 1) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.5f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .clickable { onPostClick() }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.baseline_photo_library_24),
+                            null,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "Gallery (${post.images?.size ?: 0})",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier.wrapContentWidth()
                         )
                     }
                 }

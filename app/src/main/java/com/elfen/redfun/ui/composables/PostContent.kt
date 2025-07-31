@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -141,7 +142,7 @@ fun PostContent(
         modifier = modifier
             .clickable { onClick() }
             .fillMaxWidth()
-            .fillMaxHeight(if(isScroller && post.video != null) 1f else 0f),
+            .fillMaxHeight(if (isScroller) 1f else 0f),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (post.link !== null && post.video == null) {
@@ -235,7 +236,8 @@ fun PostContent(
                                 PlayerView(context).apply {
                                     this.player = player
                                     this.useController = false
-                                    this.resizeMode = if(aspectRatio < 0.6f) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                    this.resizeMode =
+                                        if (aspectRatio < 0.6f) AspectRatioFrameLayout.RESIZE_MODE_ZOOM else AspectRatioFrameLayout.RESIZE_MODE_FIT
                                 }
                             },
                             update = { playerView ->
@@ -291,35 +293,47 @@ fun PostContent(
                 val pagerState = rememberPagerState(pageCount = {
                     post.images.size
                 })
-                Box {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .fillMaxHeight()
                     ) { page ->
                         val image = post.images[page]
-                        AsyncImage(
-                            model = image.source,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                        )
+                        if (isScroller)
+                            AsyncImage(
+                                model = image.source,
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        else
+                            AsyncImage(
+                                model = image.source,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .fillMaxWidth()
+                                    .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                            )
                     }
 
-                    Icon(
-                        painterResource(R.drawable.baseline_photo_library_24),
-                        null,
-                        tint = Color.White,
-                        modifier = Modifier
-                            .size(16.dp)
-                            .align(Alignment.TopStart)
-                            .offset(16.dp, 16.dp)
-                    )
+                    if (!isScroller)
+                        Icon(
+                            painterResource(R.drawable.baseline_photo_library_24),
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.TopStart)
+                                .offset(16.dp, 16.dp)
+                        )
                 }
             }
-        } else {
-
         }
     }
 }

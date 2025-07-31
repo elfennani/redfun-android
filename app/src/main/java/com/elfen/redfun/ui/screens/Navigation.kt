@@ -128,7 +128,7 @@ fun Navigation() {
             AnimatedVisibility(
                 visible = navBarShown,
                 modifier = Modifier.fillMaxWidth()
-            ){
+            ) {
                 NavigationBar(
                     modifier = Modifier
                         .fillMaxWidth()
