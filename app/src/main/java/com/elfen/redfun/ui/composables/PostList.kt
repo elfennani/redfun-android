@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,7 +66,9 @@ fun PostList(
 
     VerticalPager(
       state = pagerState,
-      modifier = modifier.background(Color.Black).fillMaxSize(),
+      modifier = modifier
+        .background(Color.Black)
+        .fillMaxSize(),
       contentPadding = innerPadding
     ) { page ->
       val post = posts[page]
@@ -195,6 +198,23 @@ fun PostList(
             }
           }
 
+        }
+      } else if(posts.loadState.append is LoadState.NotLoading){
+        item(span = StaggeredGridItemSpan.FullLine) {
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            contentAlignment = Alignment.Center
+          ) {
+            Button(
+              onClick = {
+                posts.refresh()
+              }
+            ) {
+              Text(text = "Load More")
+            }
+          }
         }
       }
     }
