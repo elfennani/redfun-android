@@ -1,6 +1,8 @@
 package com.elfen.redfun.ui.composables
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +50,7 @@ import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.parser.MarkdownParser
 
+const val TAG = "MarkdownRenderer"
 @Composable
 fun MarkdownRenderer(modifier: Modifier = Modifier, content: String) {
     val elements = remember {

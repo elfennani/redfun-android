@@ -2,19 +2,31 @@ package com.elfen.redfun.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
+import androidx.compose.material.ScaffoldDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.ArtTrack
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.CommentBank
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,15 +56,21 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.domain.models.Profile
 import com.elfen.redfun.ui.composables.shortenNumber
+import com.elfen.redfun.ui.screens.profile.comps.ActionButton
+import com.elfen.redfun.ui.screens.profile.comps.InfoList
+import com.elfen.redfun.ui.screens.profile.comps.LoadingScreen
+import com.elfen.redfun.ui.screens.profile.comps.ProfileBanner
+import com.elfen.redfun.ui.screens.profile.comps.ProfileIcon
 import com.elfen.redfun.ui.screens.sessions.SessionRoute
 import com.elfen.redfun.ui.theme.AppTheme
 
@@ -75,39 +93,30 @@ private fun ProfileScreen(
     profile: Profile? = null,
     onNavigate: (Any) -> Unit = {},
 ) {
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text("Profile")
                 },
-                actions = {
-                    IconButton(onClick = {
-                        onNavigate(SessionRoute)
-                    }) {
-                        Icon(painterResource(R.drawable.outline_swap_horiz_24), "Change Account")
-                    }
-                }
             )
-        }
-    ) {
+        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+    ) { scaffoldPadding ->
         if (profile == null) {
-            Column(
-                modifier = Modifier
-                    .padding(it)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            LoadingScreen(modifier = Modifier.padding(scaffoldPadding))
         } else {
             Column(
                 modifier = Modifier
+                    .verticalScroll(scrollState)
                     .fillMaxWidth()
-                    .padding(it)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(scaffoldPadding)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
+                    .padding(top = 32.dp)                    ,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -116,48 +125,16 @@ private fun ProfileScreen(
                     verticalArrangement = Arrangement.spacedBy((-48).dp)
                 ) {
                     if (profile.banner != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                        ){
-                            AsyncImage(
-                                model = profile.banner,
-                                contentDescription = "Banner",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(if (LocalInspectionMode.current) Color.LightGray else Color.Transparent)
-                                    .aspectRatio(21f / 9f),
-                            )
-                            val colorStops = arrayOf(
-                                0.5f to Color.Black.copy(alpha = 0f),
-                                1f to Color.Black.copy(alpha = 0.5f),
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .background(Brush.verticalGradient(colorStops = colorStops))
-                            )
-                        }
+                        ProfileBanner(banner = profile.banner)
                     }
-                    if (profile.icon != null) {
-                        AsyncImage(
-                            model = profile.icon,
-                            contentDescription = "Banner",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(if (LocalInspectionMode.current) Color.LightGray else Color.Transparent, RoundedCornerShape(24.dp))
-                                .size(96.dp)
-                                .border(
-                                    6.dp, MaterialTheme.colorScheme.background,
-                                    RoundedCornerShape(24.dp)
-                                )
-                        )
-                    }
+                    ProfileIcon(
+                        modifier = Modifier.size(128.dp),
+                        icon = profile.icon
+                    )
                 }
-                Column {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
                         text = if (profile.fullName.isNullOrEmpty()) "u/${profile.username}" else profile.fullName,
                         style = MaterialTheme.typography.headlineSmall,
@@ -167,38 +144,78 @@ private fun ProfileScreen(
                     if (!profile.fullName.isNullOrEmpty()) {
                         Text(
                             text = "u/${profile.username}",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            fontSize = 16.sp
                         )
                     }
                 }
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
-                    tooltip = {
-                        PlainTooltip {
-                            Text(
-                                "${
-                                    profile.linkKarma.toLong().shortenNumber()
-                                } Posts Karma, ${
-                                    profile.commentKarma.toLong().shortenNumber()
-                                } Comments Karma"
-                            )
-                        }
-                    },
-                    state = rememberTooltipState()
+
+                Spacer(Modifier.height(0.dp))
+                HorizontalDivider()
+
+                InfoList(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(profile.totalKarma.toLong().shortenNumber())
-                            }
-                            append(" Karma")
+                    item(title = "Karma", value = profile.totalKarma.toLong().shortenNumber())
+                    item(title = "Posts", value = profile.linkKarma.toLong().shortenNumber())
+                    item(title = "Comments", value = profile.commentKarma.toLong().shortenNumber())
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerLowest,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .fillMaxWidth()
+                ) {
+                    ActionButton(
+                        onClick = {},
+                        label = "Posts",
+                        icon = {
+                            Icon(Icons.Default.ArtTrack, null)
+                        }
+                    )
+                    ActionButton(
+                        onClick = {},
+                        label = "Comments",
+                        icon = {
+                            Icon(Icons.Default.CommentBank, null)
+                        }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = DividerDefaults.color.copy(alpha = 0.5f)
+                    )
+                    ActionButton(
+                        onClick = {},
+                        label = "Settings",
+                        icon = {
+                            Icon(Icons.Default.Settings, null)
+                        }
+                    )
+                    ActionButton(
+                        onClick = {
+                            onNavigate(SessionRoute)
                         },
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.fillMaxWidth()
+                        label = "Switch Account",
+                        icon = {
+                            Icon(painterResource(R.drawable.outline_swap_horiz_24), null)
+                        },
+                    )
+                    ActionButton(
+                        onClick = {},
+                        label = "Logout",
+                        icon = {
+                            Icon(Icons.AutoMirrored.Default.Logout, null)
+                        },
+                        showChevron = false
                     )
                 }
             }
