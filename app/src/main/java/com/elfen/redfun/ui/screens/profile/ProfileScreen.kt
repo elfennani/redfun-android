@@ -72,6 +72,7 @@ import com.elfen.redfun.ui.screens.profile.comps.LoadingScreen
 import com.elfen.redfun.ui.screens.profile.comps.ProfileBanner
 import com.elfen.redfun.ui.screens.profile.comps.ProfileIcon
 import com.elfen.redfun.ui.screens.sessions.SessionRoute
+import com.elfen.redfun.ui.screens.settings.SettingsRoute
 import com.elfen.redfun.ui.theme.AppTheme
 
 @Composable
@@ -194,7 +195,7 @@ private fun ProfileScreen(
                         color = DividerDefaults.color.copy(alpha = 0.5f)
                     )
                     ActionButton(
-                        onClick = {},
+                        onClick = { onNavigate(SettingsRoute) },
                         label = "Settings",
                         icon = {
                             Icon(Icons.Default.Settings, null)

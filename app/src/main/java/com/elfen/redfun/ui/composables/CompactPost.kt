@@ -53,7 +53,9 @@ import kotlin.math.abs
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
+import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.ui.utils.isWifiNetwork
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -153,6 +155,7 @@ fun CompactPost(
                     }
                 }
             } else {
+                val settings by rememberSettings()
                 val player =
                     remember { androidx.media3.exoplayer.ExoPlayer.Builder(context).build() }
                 var isPlaying by remember { mutableStateOf(true) }
@@ -167,6 +170,18 @@ fun CompactPost(
                             isPlaying = value
                         }
                     })
+                }
+
+                LaunchedEffect(settings) {
+                    if (settings != null) {
+                        val isWifi = isWifiNetwork(context)
+                        val maxResolution =
+                            if (isWifi) settings!!.maxWifiResolution else settings!!.maxMobileResolution
+                        player.trackSelectionParameters = player.trackSelectionParameters
+                            .buildUpon()
+                            .setMaxVideoSize(maxResolution, maxResolution)
+                            .build()
+                    }
                 }
 
                 DisposableEffect(key1 = player) {

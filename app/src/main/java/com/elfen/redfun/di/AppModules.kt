@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.Room
 import com.elfen.redfun.data.SessionRepo
+import com.elfen.redfun.data.SettingsRepositoryImpl
 import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.SessionDao
 import com.elfen.redfun.data.local.dataStore
@@ -16,6 +17,7 @@ import com.elfen.redfun.data.remote.CommentDeserializer
 import com.elfen.redfun.data.remote.PostDetailsDeserializer
 import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.PostDetails
+import com.elfen.redfun.domain.repositories.SettingsRepository
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -71,22 +73,23 @@ object AppModules {
 
     @OptIn(ExperimentalTime::class)
     @Provides
-    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepo): AuthAPIService{
+    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepo): AuthAPIService {
         val logging = HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(logging)
-            .addInterceptor(object : Interceptor{
+            .addInterceptor(object : Interceptor {
                 override fun intercept(chain: Interceptor.Chain): Response {
                     val session = runBlocking { sessionRepo.getCurrentSession() }
 
-                    if(session != null){
+                    if (session != null) {
                         val request = chain.request().newBuilder()
                             .addHeader("Authorization", "Bearer ${session.token}")
 
-                        if(kotlin.time.Clock.System.now() >= Instant.fromEpochSeconds(session.expiresAt)){
+                        if (kotlin.time.Clock.System.now() >= Instant.fromEpochSeconds(session.expiresAt)) {
                             Log.d(TAG, "REFRESHING TOKEN!")
-                            val newSession =runBlocking { sessionRepo.refreshSession(session.userId); }
+                            val newSession =
+                                runBlocking { sessionRepo.refreshSession(session.userId); }
                             request.removeHeader("Authorization");
                             request.addHeader("Authorization", "Bearer ${newSession.token}");
                         }
@@ -121,6 +124,12 @@ object AppModules {
     @Provides
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context) = context.dataStore
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(@ApplicationContext context: Context): SettingsRepository {
+        return SettingsRepositoryImpl(context)
+    }
 
     @Provides
     @Singleton

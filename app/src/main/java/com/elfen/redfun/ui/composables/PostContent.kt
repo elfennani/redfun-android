@@ -53,7 +53,9 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
+import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.ui.utils.isWifiNetwork
 
 @Composable
 fun rememberExoPlayer(
@@ -214,6 +216,19 @@ fun PostContent(
                 }
             } else {
                 val isPlaying = rememberIsPlaying(player)
+                val settings by rememberSettings()
+
+                LaunchedEffect(settings) {
+                    if (settings != null) {
+                        val isWifi = isWifiNetwork(context)
+                        val maxResolution =
+                            if (isWifi) settings!!.maxWifiResolution else settings!!.maxMobileResolution
+                        player.trackSelectionParameters = player.trackSelectionParameters
+                            .buildUpon()
+                            .setMaxVideoSize(maxResolution, maxResolution)
+                            .build()
+                    }
+                }
 
                 Box(
                     modifier = Modifier

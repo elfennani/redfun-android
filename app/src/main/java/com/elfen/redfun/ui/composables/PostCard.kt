@@ -45,10 +45,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
+import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.ui.utils.isWifiNetwork
 import kotlin.time.ExperimentalTime
 
 @SuppressLint("DefaultLocale")
@@ -122,11 +125,11 @@ fun PostCard(
         Text(
             post.title,
             overflow = TextOverflow.Ellipsis,
-            maxLines = if(truncate) 2 else Int.MAX_VALUE,
+            maxLines = if (truncate) 2 else Int.MAX_VALUE,
             style = MaterialTheme.typography.titleMedium,
         )
-        if(!post.body.isNullOrEmpty()){
-            if(truncate)
+        if (!post.body.isNullOrEmpty()) {
+            if (truncate)
                 Text(
                     post.body,
                     overflow = TextOverflow.Ellipsis,
@@ -170,8 +173,9 @@ fun PostCard(
                     }
                 }
             } else {
+                val settings by rememberSettings()
                 val player =
-                    remember { androidx.media3.exoplayer.ExoPlayer.Builder(context).build() }
+                    remember { ExoPlayer.Builder(context).build() }
                 var isPlaying by remember { mutableStateOf(true) }
 
                 LaunchedEffect(key1 = player) {
@@ -184,6 +188,18 @@ fun PostCard(
                             isPlaying = value
                         }
                     })
+                }
+
+                LaunchedEffect(settings) {
+                    if (settings != null) {
+                        val isWifi = isWifiNetwork(context)
+                        val maxResolution =
+                            if (isWifi) settings!!.maxWifiResolution else settings!!.maxMobileResolution
+                        player.trackSelectionParameters = player.trackSelectionParameters
+                            .buildUpon()
+                            .setMaxVideoSize(maxResolution, maxResolution)
+                            .build()
+                    }
                 }
 
                 DisposableEffect(key1 = player) {
@@ -297,9 +313,9 @@ fun PostCard(
                 }
             }
         }
-        
+
         Row(
-            modifier = Modifier.padding(top=8.dp),
+            modifier = Modifier.padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
