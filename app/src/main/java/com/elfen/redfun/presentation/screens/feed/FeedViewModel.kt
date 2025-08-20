@@ -15,6 +15,9 @@ import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.repository.FeedRepository
+import com.elfen.redfun.domain.usecase.GetFeedPagingUseCase
+import com.elfen.redfun.domain.usecase.GetSortingUseCase
+import com.elfen.redfun.domain.usecase.UpdateSortingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -24,12 +27,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 
-private const val TAG = "HomeViewModel"
+private const val TAG = "FeedViewModel"
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val feedRepositoryImpl: FeedRepository,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val getFeedPaging: GetFeedPagingUseCase,
+    private val updateSorting: UpdateSortingUseCase,
+    getSorting: GetSortingUseCase
 ) : ViewModel() {
     val viewModeFlow = dataStore.data.map {
         val viewModelName = it[stringPreferencesKey("display_mode")];
@@ -37,31 +42,25 @@ class FeedViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalTime::class)
-    val state = feedRepositoryImpl.sortingFlow.map {
+    val state = getSorting().map {
         val sorting = it ?: Sorting.Best
 
         FeedState(
             isLoading = false,
-            posts = feedRepositoryImpl.getFeedPaging(Feed.Home(sorting)).map {
-                it.map { feedPost ->
-                    val post = feedPost.asDomainModel()
-                    post
-                }
-            }.cachedIn(viewModelScope),
+            posts = getFeedPaging(Feed.Home(sorting)).cachedIn(viewModelScope),
             sorting = sorting,
-            onSortingChanged = ::updateSorting,
+            onSortingChanged = { newSorting ->
+                viewModelScope.launch {
+                    Log.d(TAG, "onSortingChanged: $newSorting")
+                    updateSorting(newSorting)
+                }
+            },
             displayMode = DisplayMode.MASONRY,
             onDisplayModeChanged = ::updateViewMode
         )
     }
         .combine(viewModeFlow) { state, viewMode -> state.copy(displayMode = viewMode) }
         .stateIn(viewModelScope, SharingStarted.Lazily, FeedState(isLoading = true))
-
-    private fun updateSorting(sorting: Sorting) {
-        viewModelScope.launch {
-            feedRepositoryImpl.setSorting(sorting)
-        }
-    }
 
     private fun updateViewMode(displayMode: DisplayMode) {
         Log.d(TAG, "updateViewMode: $displayMode (${displayMode == DisplayMode.MASONRY})")

@@ -10,12 +10,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
-import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.name
-import com.elfen.redfun.domain.repository.FeedRepository
+import com.elfen.redfun.domain.usecase.GetFeedPagingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,30 +25,30 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubredditViewModel @Inject constructor(
-  private val feedRepositoryImpl: FeedRepository,
-  private val savedStateHandle: SavedStateHandle,
-  private val dataStore: DataStore<Preferences>
-): ViewModel() {
-  val route = savedStateHandle.toRoute<SubredditRoute>()
+    private val savedStateHandle: SavedStateHandle,
+    private val dataStore: DataStore<Preferences>,
+    getFeedPaging: GetFeedPagingUseCase
+) : ViewModel() {
+    val route = savedStateHandle.toRoute<SubredditRoute>()
 
-  val sorting = dataStore.data.map {
-    val sortingName = it[stringPreferencesKey("sorting_${route.name}")]
-    sortingName?.let { Sorting.fromName(it) } ?: Sorting.Hot
-  }
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  val posts = sorting.flatMapLatest { sorting ->
-    feedRepositoryImpl.getFeedPaging(Feed.Subreddit(route.name, sorting)).map { feedPost ->
-      feedPost.map { it.asDomainModel() }
-    }.cachedIn(viewModelScope)
-  }.cachedIn(viewModelScope).stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
-
-
-  fun updateSorting(sorting: Sorting) {
-    viewModelScope.launch {
-      dataStore.edit { preferences ->
-        preferences[stringPreferencesKey("sorting_${route.name}")] = sorting.name()
-      }
+    val sorting = dataStore.data.map {
+        val sortingName = it[stringPreferencesKey("sorting_${route.name}")]
+        sortingName?.let { Sorting.fromName(it) } ?: Sorting.Hot
     }
-  }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val posts = sorting.flatMapLatest { sorting ->
+        getFeedPaging(Feed.Subreddit(route.name, sorting)).cachedIn(viewModelScope)
+    }
+        .cachedIn(viewModelScope)
+        .stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
+
+
+    fun updateSorting(sorting: Sorting) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[stringPreferencesKey("sorting_${route.name}")] = sorting.name()
+            }
+        }
+    }
 }
