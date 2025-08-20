@@ -10,8 +10,8 @@ import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.SessionDao
 import com.elfen.redfun.data.local.models.SessionEntity
 import com.elfen.redfun.data.remote.PublicAPIService
-import com.elfen.redfun.ui.utils.Resource
-import com.elfen.redfun.ui.utils.resourceOf
+import com.elfen.redfun.presentation.utils.Resource
+import com.elfen.redfun.presentation.utils.resourceOf
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -7,8 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.ui.screens.Navigation
-import com.elfen.redfun.ui.theme.AppTheme
+import com.elfen.redfun.presentation.screens.Navigation
+import com.elfen.redfun.presentation.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

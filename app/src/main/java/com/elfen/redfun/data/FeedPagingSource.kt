@@ -10,7 +10,7 @@ import com.elfen.redfun.domain.models.Post
 import com.elfen.redfun.domain.models.ResourceError
 import com.elfen.redfun.domain.models.Sorting
 import com.elfen.redfun.domain.models.getTimeParameter
-import com.elfen.redfun.ui.utils.toResource
+import com.elfen.redfun.presentation.utils.toResource
 
 class FeedPagingSource(
     val apiService: AuthAPIService,

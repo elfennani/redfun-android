@@ -4,9 +4,8 @@ import com.elfen.redfun.data.local.dao.ProfileDao
 import com.elfen.redfun.data.local.models.toAppModel
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.models.toEntity
-import com.elfen.redfun.domain.models.Profile
-import com.elfen.redfun.ui.utils.Resource
-import com.elfen.redfun.ui.utils.resourceOf
+import com.elfen.redfun.presentation.utils.Resource
+import com.elfen.redfun.presentation.utils.resourceOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton

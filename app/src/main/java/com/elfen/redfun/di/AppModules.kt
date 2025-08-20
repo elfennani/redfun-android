@@ -2,9 +2,6 @@ package com.elfen.redfun.di
 
 import android.content.Context
 import android.util.Log
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.Room
 import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.SettingsRepositoryImpl
@@ -17,14 +14,13 @@ import com.elfen.redfun.data.remote.CommentDeserializer
 import com.elfen.redfun.data.remote.PostDetailsDeserializer
 import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.PostDetails
-import com.elfen.redfun.domain.repositories.SettingsRepository
+import com.elfen.redfun.domain.repository.SettingsRepository
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -32,7 +28,6 @@ import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.time.Clock
 import javax.inject.Singleton
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
