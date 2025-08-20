@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.ProfileService
 import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Feed
@@ -30,7 +29,6 @@ private const val TAG = "HomeViewModel"
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val feedRepositoryImpl: FeedRepository,
-    private val profileService: ProfileService,
     private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
     val viewModeFlow = dataStore.data.map {
