@@ -20,8 +20,10 @@ import com.elfen.redfun.domain.usecase.UpdateDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.UpdateFeedSortingUseCase
 import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,7 +34,6 @@ private const val TAG = "FeedViewModel"
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
     private val getFeedPaging: GetFeedPagingUseCase,
     private val updateSorting: UpdateFeedSortingUseCase,
     private val updateDisplayMode: UpdateDisplayModeUseCase,
@@ -41,21 +42,28 @@ class FeedViewModel @Inject constructor(
     getDisplayMode: GetDisplayModeUseCase,
     getNavBarShown: GetNavBarShownUseCase
 ) : ViewModel() {
+
+    private val sortingFlow = getSorting(Feed.Home(Sorting.Best))
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val postsFlow = sortingFlow
+        .map { sorting -> getFeedPaging(Feed.Home(sorting)).cachedIn(viewModelScope) }
+
     @OptIn(ExperimentalTime::class)
     val state = combine(
-        getSorting(Feed.Home(Sorting.Best)),
+        postsFlow,
+        sortingFlow,
         getDisplayMode(),
         getNavBarShown()
-    ) { sorting, viewMode, isNavBarShown ->
+    ) { posts, sorting, viewMode, isNavBarShown ->
         FeedUiState(
             isLoading = false,
-            posts = getFeedPaging(Feed.Home(sorting)).cachedIn(viewModelScope),
+            posts = posts,
             sorting = sorting,
             displayMode = viewMode,
             isNavBarShown = isNavBarShown
         )
-    }
-        .stateIn(viewModelScope, SharingStarted.Lazily, FeedUiState(isLoading = true))
+    }.stateIn(viewModelScope, SharingStarted.Lazily, FeedUiState(isLoading = true))
 
     fun onEvent(event: FeedEvent) {
         when (event) {

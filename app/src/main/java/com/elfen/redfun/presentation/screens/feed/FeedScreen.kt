@@ -1,5 +1,6 @@
 package com.elfen.redfun.presentation.screens.feed
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +61,7 @@ import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.feed.components.DisplayModeBottomSheet
 import com.elfen.redfun.presentation.screens.feed.components.SortingBottomSheet
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -80,73 +83,73 @@ private fun FeedScreen(
     onEvent: (FeedEvent) -> Unit,
     navController: NavController,
 ) {
-    val posts = state.posts?.collectAsLazyPagingItems()
     val scope = rememberCoroutineScope()
+    val posts = state.posts?.collectAsLazyPagingItems()
     var sortingSheet by remember { mutableStateOf(false) }
     var viewModeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            if (state.displayMode == DisplayMode.SCROLLER) return@Scaffold
-            TopAppBar(
-                title = { Text("Feed") },
-                actions = {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-                            .size(44.dp)
-                            .clickable {
-                                scope.launch { viewModeSheet = true }
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.outline_view_quilt_24),
-                            null,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TooltipBox(
-                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = {
-                            PlainTooltip {
-                                Text((state.sorting ?: Sorting.Best).feed.replaceFirstChar {
-                                    if (it.isLowerCase()) it.titlecase(
-                                        Locale.US
-                                    ) else it.toString()
-                                } + when (state.sorting) {
-                                    is Sorting.Top -> " (${state.sorting.time.toLabel()})"
-                                    is Sorting.Controversial -> " (${state.sorting.time.toLabel()})"
-                                    else -> ""
-                                })
-                            }
-                        },
-                        state = rememberTooltipState()
-                    ) {
+            if (state.displayMode != DisplayMode.SCROLLER)
+                TopAppBar(
+                    title = { Text("Feed") },
+                    actions = {
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
                                 .size(44.dp)
                                 .clickable {
-                                    sortingSheet = true
+                                    scope.launch { viewModeSheet = true }
                                 },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                painterResource(R.drawable.outline_sort_24),
+                                painterResource(R.drawable.outline_view_quilt_24),
                                 null,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                },
-            )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text((state.sorting ?: Sorting.Best).feed.replaceFirstChar {
+                                        if (it.isLowerCase()) it.titlecase(
+                                            Locale.US
+                                        ) else it.toString()
+                                    } + when (state.sorting) {
+                                        is Sorting.Top -> " (${state.sorting.time.toLabel()})"
+                                        is Sorting.Controversial -> " (${state.sorting.time.toLabel()})"
+                                        else -> ""
+                                    })
+                                }
+                            },
+                            state = rememberTooltipState()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                                    .size(44.dp)
+                                    .clickable {
+                                        sortingSheet = true
+                                    },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.outline_sort_24),
+                                    null,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                    },
+                )
         },
         floatingActionButton = {
             if (state.displayMode == DisplayMode.SCROLLER) {
