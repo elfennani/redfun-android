@@ -16,7 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.serialization.Serializable
 import androidx.compose.runtime.getValue
-import com.elfen.redfun.presentation.screens.feed.HomeRoute
+import com.elfen.redfun.presentation.screens.feed.FeedRoute
 
 
 @Serializable
@@ -28,7 +28,7 @@ fun AuthScreen(navController: NavController, viewModel: AuthViewModel = hiltView
 
     LaunchedEffect(state) {
         if (state is AuthState.Success) {
-            navController.navigate(HomeRoute, {
+            navController.navigate(FeedRoute, {
                 popUpTo(AuthRoute::class.java.name) {
                     inclusive = true
                 }

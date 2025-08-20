@@ -4,8 +4,8 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.models.FeedCursorEntity
+import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.data.remote.AuthAPIService
-import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.ResourceError
 import com.elfen.redfun.domain.model.Sorting

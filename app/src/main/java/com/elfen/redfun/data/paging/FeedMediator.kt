@@ -13,8 +13,8 @@ import com.elfen.redfun.data.local.models.FeedPostEntity
 import com.elfen.redfun.data.local.models.PostEntity
 import com.elfen.redfun.data.local.models.PostMediaEntity
 import com.elfen.redfun.data.local.relations.FeedWithPost
+import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.data.remote.AuthAPIService
-import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.getTimeParameter
 import com.elfen.redfun.domain.model.name

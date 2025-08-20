@@ -13,15 +13,3 @@ data class RemoteProfile(
     @SerializedName("total_karma") val totalKarma: Int,
     @SerializedName("is_mod") val isMod: Boolean,
 )
-
-fun RemoteProfile.toEntity() = ProfileEntity(
-    id = id,
-    username = name,
-    fullName = subreddit.title,
-    icon = iconImg?.ifEmpty { null } ?: subreddit.iconImg?.ifEmpty { null } ?: subreddit.communityIcon?.ifEmpty { null },
-    banner = subreddit.bannerImg?.ifEmpty { null },
-    commentKarma = commentKarma,
-    linkKarma = linkKarma,
-    totalKarma = totalKarma,
-    isMod = isMod
-)

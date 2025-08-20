@@ -11,7 +11,7 @@ import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.local.relations.asAppModel
+import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.name
@@ -41,7 +41,7 @@ class SubredditViewModel @Inject constructor(
   @OptIn(ExperimentalCoroutinesApi::class)
   val posts = sorting.flatMapLatest { sorting ->
     feedRepositoryImpl.getFeedPaging(Feed.Subreddit(route.name, sorting)).map { feedPost ->
-      feedPost.map { it.asAppModel() }
+      feedPost.map { it.asDomainModel() }
     }.cachedIn(viewModelScope)
   }.cachedIn(viewModelScope).stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
 

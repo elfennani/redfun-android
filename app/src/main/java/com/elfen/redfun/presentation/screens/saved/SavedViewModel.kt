@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.local.relations.asAppModel
+import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.repository.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +17,7 @@ class SavedViewModel @Inject constructor(
 ): ViewModel() {
   val posts =  feedRepositoryImpl.getFeedPaging(Feed.SavedPosts).map {
     it.map { feedPost ->
-      val post = feedPost.asAppModel()
+      val post = feedPost.asDomainModel()
       post
     }
   }.cachedIn(viewModelScope)

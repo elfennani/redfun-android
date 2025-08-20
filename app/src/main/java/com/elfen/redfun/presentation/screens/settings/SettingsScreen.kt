@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.elfen.redfun.presentation.screens.feed.plus
 import com.elfen.redfun.presentation.screens.settings.components.DropdownSetting
+import com.elfen.redfun.presentation.utils.plus
 
 
 @Composable

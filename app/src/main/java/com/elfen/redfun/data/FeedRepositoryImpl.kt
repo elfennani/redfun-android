@@ -10,10 +10,9 @@ import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.dao.SortingDao
 import com.elfen.redfun.data.local.models.toDomain
 import com.elfen.redfun.data.local.models.toEntity
-import com.elfen.redfun.data.local.relations.asAppModel
+import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.data.paging.FeedMediator
 import com.elfen.redfun.data.remote.AuthAPIService
-import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.model.Comment
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Post
@@ -58,7 +57,7 @@ class FeedRepositoryImpl @Inject constructor(
     }
 
     override fun getPostWithComments(id: String): Flow<Pair<Post, List<Comment>?>> = flow {
-        val cached = database.postDao().getPostWithMedia(id)?.asAppModel()
+        val cached = database.postDao().getPostWithMedia(id)?.asDomainModel()
         if (cached != null) {
             emit(Pair(cached, null))
         }

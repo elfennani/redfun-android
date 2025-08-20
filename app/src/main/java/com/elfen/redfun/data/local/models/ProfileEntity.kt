@@ -16,15 +16,3 @@ data class ProfileEntity(
     val totalKarma: Int = 0,
     val isMod: Boolean = false
 )
-
-fun ProfileEntity.toAppModel() = Profile(
-    id = id,
-    username = username,
-    fullName = fullName,
-    icon = icon,
-    banner = banner,
-    commentKarma = commentKarma,
-    linkKarma = linkKarma,
-    totalKarma = totalKarma,
-    isMod = isMod
-)

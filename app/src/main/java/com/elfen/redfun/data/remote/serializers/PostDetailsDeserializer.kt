@@ -1,10 +1,10 @@
-package com.elfen.redfun.data.remote
+package com.elfen.redfun.data.remote.serializers
 
-import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.DataCollection
 import com.elfen.redfun.data.remote.models.Link
 import com.elfen.redfun.data.remote.models.Listing
 import com.elfen.redfun.data.remote.models.PostDetails
+import com.elfen.redfun.data.remote.models.RemoteComment
 import com.google.gson.Gson
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -33,7 +33,9 @@ class PostDetailsDeserializer(
         val second =
             gson.fromJson<DataCollection<Listing<DataCollection<RemoteComment>>>>(jsonArray[1], typeB)
 
-        return PostDetails(post=first.data.children.first().data, comments = second.data.children.map { it.data })
+        return PostDetails(
+            post = first.data.children.first().data,
+            comments = second.data.children.map { it.data })
     }
 
 }

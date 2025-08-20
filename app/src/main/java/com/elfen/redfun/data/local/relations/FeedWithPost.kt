@@ -20,5 +20,3 @@ data class FeedWithPost(
     )
     val media: List<PostMediaEntity>
 )
-
-fun FeedWithPost.asAppModel() = PostWithMedia(post = post, media = media).asAppModel()

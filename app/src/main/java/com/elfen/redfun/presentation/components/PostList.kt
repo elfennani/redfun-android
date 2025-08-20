@@ -43,9 +43,9 @@ import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.ResourceError
-import com.elfen.redfun.presentation.screens.feed.plus
 import com.elfen.redfun.presentation.screens.details.PostDetailRoute
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
+import com.elfen.redfun.presentation.utils.plus
 import kotlinx.coroutines.flow.mapNotNull
 
 @Composable

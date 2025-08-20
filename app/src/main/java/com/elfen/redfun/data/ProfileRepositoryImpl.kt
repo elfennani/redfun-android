@@ -1,9 +1,9 @@
 package com.elfen.redfun.data
 
 import com.elfen.redfun.data.local.dao.ProfileDao
-import com.elfen.redfun.data.local.models.toAppModel
+import com.elfen.redfun.data.mappers.asDomainModel
+import com.elfen.redfun.data.mappers.toEntity
 import com.elfen.redfun.data.remote.AuthAPIService
-import com.elfen.redfun.data.remote.models.toEntity
 import com.elfen.redfun.domain.repository.ProfileRepository
 import com.elfen.redfun.presentation.utils.Resource
 import com.elfen.redfun.presentation.utils.resourceOf
@@ -24,6 +24,6 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     override fun getProfileByUserID(userId: String) =
-        profileDao.getProfileByUserID(userId).map { it?.toAppModel() }
+        profileDao.getProfileByUserID(userId).map { it?.asDomainModel() }
 
 }

@@ -1,4 +1,4 @@
-package com.elfen.redfun.data.remote
+package com.elfen.redfun.data.remote.serializers
 
 import com.elfen.redfun.data.remote.models.RemoteComment
 import com.google.gson.JsonDeserializationContext

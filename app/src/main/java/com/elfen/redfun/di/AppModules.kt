@@ -9,8 +9,8 @@ import com.elfen.redfun.data.local.dao.SessionDao
 import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.PublicAPIService
-import com.elfen.redfun.data.remote.CommentDeserializer
-import com.elfen.redfun.data.remote.PostDetailsDeserializer
+import com.elfen.redfun.data.remote.serializers.CommentDeserializer
+import com.elfen.redfun.data.remote.serializers.PostDetailsDeserializer
 import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.PostDetails
 import com.elfen.redfun.domain.repository.SessionRepository
