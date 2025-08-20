@@ -11,11 +11,11 @@ import androidx.navigation.toRoute
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.name
+import com.elfen.redfun.domain.repository.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubredditViewModel @Inject constructor(
-  private val feedService: FeedService,
+  private val feedRepositoryImpl: FeedRepository,
   private val savedStateHandle: SavedStateHandle,
   private val dataStore: DataStore<Preferences>
 ): ViewModel() {
@@ -40,7 +40,7 @@ class SubredditViewModel @Inject constructor(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   val posts = sorting.flatMapLatest { sorting ->
-    feedService.getFeedPaging(Feed.Subreddit(route.name, sorting)).map { feedPost ->
+    feedRepositoryImpl.getFeedPaging(Feed.Subreddit(route.name, sorting)).map { feedPost ->
       feedPost.map { it.asAppModel() }
     }.cachedIn(viewModelScope)
   }.cachedIn(viewModelScope).stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())

@@ -4,18 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.domain.model.Feed
+import com.elfen.redfun.domain.repository.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @HiltViewModel
 class SavedViewModel @Inject constructor(
-  private val feedService: FeedService
+  private val feedRepositoryImpl: FeedRepository
 ): ViewModel() {
-  val posts =  feedService.getFeedPaging(Feed.SavedPosts).map {
+  val posts =  feedRepositoryImpl.getFeedPaging(Feed.SavedPosts).map {
     it.map { feedPost ->
       val post = feedPost.asAppModel()
       post

@@ -10,12 +10,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.ProfileService
 import com.elfen.redfun.data.local.relations.asAppModel
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.domain.repository.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -29,7 +29,7 @@ private const val TAG = "HomeViewModel"
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val feedService: FeedService,
+    private val feedRepositoryImpl: FeedRepository,
     private val profileService: ProfileService,
     private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
@@ -39,12 +39,12 @@ class FeedViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalTime::class)
-    val state = feedService.getSortingFlow().map {
+    val state = feedRepositoryImpl.sortingFlow.map {
         val sorting = it ?: Sorting.Best
 
         FeedState(
             isLoading = false,
-            posts = feedService.getFeedPaging(Feed.Home(sorting)).map {
+            posts = feedRepositoryImpl.getFeedPaging(Feed.Home(sorting)).map {
                 it.map { feedPost ->
                     val post = feedPost.asAppModel()
                     post
@@ -61,7 +61,7 @@ class FeedViewModel @Inject constructor(
 
     private fun updateSorting(sorting: Sorting) {
         viewModelScope.launch {
-            feedService.setSorting(sorting)
+            feedRepositoryImpl.setSorting(sorting)
         }
     }
 
