@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.models.Settings
+import com.elfen.redfun.domain.model.Settings
 import com.elfen.redfun.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

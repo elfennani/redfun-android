@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.elfen.redfun.R
-import com.elfen.redfun.domain.models.Comment
+import com.elfen.redfun.domain.model.Comment
 import kotlin.time.ExperimentalTime
 
 @SuppressLint("NewApi")

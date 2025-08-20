@@ -1,14 +1,14 @@
 @file:OptIn(ExperimentalPagingApi::class)
 
-package com.elfen.redfun.data
+package com.elfen.redfun.data.paging
 
 import android.util.Log
-import androidx.compose.ui.util.fastMapNotNull
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.models.FeedPostEntity
 import com.elfen.redfun.data.local.models.PostEntity
@@ -16,14 +16,11 @@ import com.elfen.redfun.data.local.models.PostMediaEntity
 import com.elfen.redfun.data.local.relations.FeedWithPost
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
-import com.elfen.redfun.domain.models.Feed
-import com.elfen.redfun.domain.models.Sorting
-import com.elfen.redfun.domain.models.getTimeParameter
-import com.elfen.redfun.domain.models.name
-import kotlinx.coroutines.runBlocking
+import com.elfen.redfun.domain.model.Feed
+import com.elfen.redfun.domain.model.getTimeParameter
+import com.elfen.redfun.domain.model.name
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 private const val TAG = "FeedMediator"
 

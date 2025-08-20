@@ -1,4 +1,4 @@
-package com.elfen.redfun.presentation.screens.post
+package com.elfen.redfun.presentation.screens.details
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -22,21 +22,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.elfen.redfun.R
 import com.elfen.redfun.presentation.components.CommentCard
-import kotlinx.serialization.Serializable
-import androidx.core.net.toUri
 import com.elfen.redfun.presentation.components.PostCard
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 
-@Serializable
-data class PostRoute(val id: String)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostScreen(navController: NavController, viewModel: PostViewModel = hiltViewModel()) {
+fun PostDetailScreen(navController: NavController, viewModel: PostDetailViewModel = hiltViewModel()) {
     val state = viewModel.state.collectAsState()
     val post = state.value.post
     val comments = state.value.comments ?: emptyList()

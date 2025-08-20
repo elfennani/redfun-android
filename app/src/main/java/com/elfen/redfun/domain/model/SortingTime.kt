@@ -1,4 +1,4 @@
-package com.elfen.redfun.domain.models
+package com.elfen.redfun.domain.model
 
 enum class SortingTime{
     HOUR, DAY, WEEK, MONTH, YEAR, ALL_TIME;

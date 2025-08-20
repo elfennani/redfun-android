@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.elfen.redfun.R
-import com.elfen.redfun.domain.models.Profile
+import com.elfen.redfun.domain.model.Profile
 import com.elfen.redfun.presentation.components.shortenNumber
 import com.elfen.redfun.presentation.screens.profile.components.ActionButton
 import com.elfen.redfun.presentation.screens.profile.components.InfoList

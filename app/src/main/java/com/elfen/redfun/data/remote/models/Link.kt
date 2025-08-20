@@ -7,9 +7,9 @@ package com.elfen.redfun.data.remote.models
 
 import android.util.DisplayMetrics
 import android.util.Patterns
-import com.elfen.redfun.domain.models.MediaImage
-import com.elfen.redfun.domain.models.MediaVideo
-import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.domain.model.MediaImage
+import com.elfen.redfun.domain.model.MediaVideo
+import com.elfen.redfun.domain.model.Post
 import com.google.gson.annotations.SerializedName
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant

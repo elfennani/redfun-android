@@ -1,4 +1,4 @@
-package com.elfen.redfun.domain.models
+package com.elfen.redfun.domain.model
 
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant

@@ -1,7 +1,7 @@
 package com.elfen.redfun.data.remote.models
 
-import com.elfen.redfun.domain.models.Comment
-import com.elfen.redfun.domain.models.MediaImage
+import com.elfen.redfun.domain.model.Comment
+import com.elfen.redfun.domain.model.MediaImage
 import com.google.gson.annotations.SerializedName
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant

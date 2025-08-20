@@ -2,7 +2,7 @@ package com.elfen.redfun.data.local.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.elfen.redfun.domain.models.Profile
+import com.elfen.redfun.domain.model.Profile
 
 @Entity(tableName = "profile")
 data class ProfileEntity(

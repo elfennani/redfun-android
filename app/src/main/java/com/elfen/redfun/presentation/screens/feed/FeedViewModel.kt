@@ -13,9 +13,9 @@ import androidx.paging.map
 import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.ProfileService
 import com.elfen.redfun.data.local.relations.asAppModel
-import com.elfen.redfun.domain.models.DisplayMode
-import com.elfen.redfun.domain.models.Feed
-import com.elfen.redfun.domain.models.Sorting
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Feed
+import com.elfen.redfun.domain.model.Sorting
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine

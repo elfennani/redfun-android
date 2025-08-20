@@ -1,9 +1,9 @@
 package com.elfen.redfun.presentation.screens.feed
 
 import androidx.paging.PagingData
-import com.elfen.redfun.domain.models.DisplayMode
-import com.elfen.redfun.domain.models.Post
-import com.elfen.redfun.domain.models.Sorting
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Post
+import com.elfen.redfun.domain.model.Sorting
 import kotlinx.coroutines.flow.Flow
 
 data class FeedState(

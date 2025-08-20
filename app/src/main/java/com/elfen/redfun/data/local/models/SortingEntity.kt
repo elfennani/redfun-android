@@ -2,8 +2,8 @@ package com.elfen.redfun.data.local.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.elfen.redfun.domain.models.Sorting
-import com.elfen.redfun.domain.models.SortingTime
+import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.domain.model.SortingTime
 
 @Entity(tableName = "sorting")
 data class SortingEntity(

@@ -53,9 +53,9 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.R
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.models.DisplayMode
-import com.elfen.redfun.domain.models.Sorting
-import com.elfen.redfun.domain.models.toLabel
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.feed.components.DisplayModeBottomSheet
 import com.elfen.redfun.presentation.screens.feed.components.SortingBottomSheet

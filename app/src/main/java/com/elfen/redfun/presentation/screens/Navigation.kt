@@ -52,8 +52,8 @@ import com.elfen.redfun.presentation.screens.feed.FeedScreen
 import com.elfen.redfun.presentation.screens.feed.FeedViewModel
 import com.elfen.redfun.presentation.screens.login.LoginRoute
 import com.elfen.redfun.presentation.screens.login.LoginScreen
-import com.elfen.redfun.presentation.screens.post.PostRoute
-import com.elfen.redfun.presentation.screens.post.PostScreen
+import com.elfen.redfun.presentation.screens.details.PostDetailRoute
+import com.elfen.redfun.presentation.screens.details.PostDetailScreen
 import com.elfen.redfun.presentation.screens.profile.ProfileRoute
 import com.elfen.redfun.presentation.screens.profile.ProfileScreen
 import com.elfen.redfun.presentation.screens.saved.SavedRoute
@@ -196,8 +196,8 @@ fun Navigation() {
             composable<SessionRoute> {
                 SessionScreen(navController)
             }
-            composable<PostRoute> {
-                PostScreen(navController)
+            composable<PostDetailRoute> {
+                PostDetailScreen(navController)
             }
             composable<SavedRoute> {
                 SavedScreen(navController)

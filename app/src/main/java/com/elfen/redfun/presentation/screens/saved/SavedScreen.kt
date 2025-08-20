@@ -19,7 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.models.DisplayMode
+import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.presentation.components.PostList
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.getValue

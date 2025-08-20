@@ -40,11 +40,11 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.models.DisplayMode
-import com.elfen.redfun.domain.models.Post
-import com.elfen.redfun.domain.models.ResourceError
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Post
+import com.elfen.redfun.domain.model.ResourceError
 import com.elfen.redfun.presentation.screens.feed.plus
-import com.elfen.redfun.presentation.screens.post.PostRoute
+import com.elfen.redfun.presentation.screens.details.PostDetailRoute
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import kotlinx.coroutines.flow.mapNotNull
 
@@ -81,7 +81,7 @@ fun PostList(
                         post = post,
                         showSubreddit = showSubreddit,
                         onPostClick = {
-                            navController.navigate(PostRoute(post.id))
+                            navController.navigate(PostDetailRoute(post.id))
                         },
                         onClickSubreddit = {
                             navController.navigate(SubredditRoute(post.subreddit))
@@ -120,7 +120,7 @@ fun PostList(
                     PostCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .clickable { navController.navigate(PostRoute(post.id)) }
+                            .clickable { navController.navigate(PostDetailRoute(post.id)) }
                             .padding(16.dp),
                         post = post,
                         onClickSubreddit = {
@@ -196,7 +196,7 @@ fun PostList(
                     CompactPost(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .clickable { navController.navigate(PostRoute(post.id)) },
+                            .clickable { navController.navigate(PostDetailRoute(post.id)) },
                         post = post,
                         onClickSubreddit = {
                             navController.navigate(SubredditRoute(post.subreddit))

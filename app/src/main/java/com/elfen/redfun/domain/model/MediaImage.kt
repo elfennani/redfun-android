@@ -1,4 +1,4 @@
-package com.elfen.redfun.domain.models
+package com.elfen.redfun.domain.model
 
 data class MediaImage(
     val id: String,

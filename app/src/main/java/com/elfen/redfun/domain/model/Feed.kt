@@ -1,4 +1,4 @@
-package com.elfen.redfun.domain.models
+package com.elfen.redfun.domain.model
 
 sealed class Feed {
   data class Home(val sorting: Sorting): Feed()

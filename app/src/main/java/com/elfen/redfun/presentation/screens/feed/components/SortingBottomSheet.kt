@@ -33,11 +33,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.models.Sorting
-import com.elfen.redfun.domain.models.SortingTime
-import com.elfen.redfun.domain.models.getTimeParameter
-import com.elfen.redfun.domain.models.toLabel
-import com.elfen.redfun.domain.models.toParameter
+import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.domain.model.SortingTime
+import com.elfen.redfun.domain.model.getTimeParameter
+import com.elfen.redfun.domain.model.toLabel
+import com.elfen.redfun.domain.model.toParameter
 import kotlinx.coroutines.launch
 import java.util.Locale
 

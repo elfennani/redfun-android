@@ -49,7 +49,7 @@ import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.data.rememberSettings
-import com.elfen.redfun.domain.models.Post
+import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.presentation.utils.isWifiNetwork
 import kotlin.time.ExperimentalTime
 

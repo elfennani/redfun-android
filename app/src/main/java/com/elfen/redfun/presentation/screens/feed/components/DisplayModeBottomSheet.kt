@@ -31,8 +31,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.elfen.redfun.domain.models.DisplayMode
-import com.elfen.redfun.domain.models.icon
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.icon
 import com.elfen.redfun.presentation.theme.AppTheme
 import kotlinx.coroutines.launch
 

@@ -6,7 +6,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.elfen.redfun.data.FeedService
 import com.elfen.redfun.data.local.relations.asAppModel
-import com.elfen.redfun.domain.models.Feed
+import com.elfen.redfun.domain.model.Feed
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

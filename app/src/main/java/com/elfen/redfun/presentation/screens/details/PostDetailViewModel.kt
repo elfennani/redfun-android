@@ -1,4 +1,4 @@
-package com.elfen.redfun.presentation.screens.post
+package com.elfen.redfun.presentation.screens.details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -12,14 +12,14 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class PostViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val feedService: FeedService): ViewModel() {
-    private val id = savedStateHandle.toRoute<PostRoute>().id
+class PostDetailViewModel @Inject constructor(savedStateHandle: SavedStateHandle, private val feedService: FeedService): ViewModel() {
+    private val id = savedStateHandle.toRoute<PostDetailRoute>().id
 
     val state = feedService.getPostWithComments(id).map {
-        PostState(
+        PostDetailUiState(
             post = it.first,
             comments = it.second,
             isLoading = it.second === null
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PostState(null, null, true))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PostDetailUiState(null, null, true))
 }

@@ -1,4 +1,4 @@
-package com.elfen.redfun.domain.models
+package com.elfen.redfun.domain.model
 
 sealed class Sorting(val feed:String,val shouldSaveCursor: Boolean) {
     data object Best: Sorting("best", true)

@@ -1,15 +1,16 @@
-package com.elfen.redfun.data
+package com.elfen.redfun.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.models.FeedCursorEntity
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.data.remote.models.asDomainModel
-import com.elfen.redfun.domain.models.Post
-import com.elfen.redfun.domain.models.ResourceError
-import com.elfen.redfun.domain.models.Sorting
-import com.elfen.redfun.domain.models.getTimeParameter
+import com.elfen.redfun.domain.model.Post
+import com.elfen.redfun.domain.model.ResourceError
+import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.domain.model.getTimeParameter
 import com.elfen.redfun.presentation.utils.toResource
 
 class FeedPagingSource(
@@ -44,11 +45,13 @@ class FeedPagingSource(
         if (session == null) {
             return
         }
-        feedCursorDao.upsertCursor(FeedCursorEntity(
-            feed = sorting.feed,
-            cursor = cursor,
-            sessionId = session.userId
-        ))
+        feedCursorDao.upsertCursor(
+            FeedCursorEntity(
+                feed = sorting.feed,
+                cursor = cursor,
+                sessionId = session.userId
+            )
+        )
     }
 
     override suspend fun load(params: LoadParams<String>): LoadResult<String, Post> {
