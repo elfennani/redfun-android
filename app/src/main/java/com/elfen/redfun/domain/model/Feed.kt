@@ -14,3 +14,11 @@ fun Feed.name(): String {
     is Feed.Subreddit -> "subreddit-${subreddit}-${sorting.feed}"
   }
 }
+
+fun Feed.type(): String {
+  return when (this) {
+    is Feed.Home -> "home"
+    is Feed.SavedPosts -> "saved-posts"
+    is Feed.Subreddit -> "subreddit-${subreddit}"
+  }
+}

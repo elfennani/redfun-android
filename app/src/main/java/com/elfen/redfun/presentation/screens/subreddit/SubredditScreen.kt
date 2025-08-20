@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,43 +34,50 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.R
-import com.elfen.redfun.data.local.dataStore
-import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.feed.components.SortingBottomSheet
-import kotlinx.coroutines.flow.map
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubredditScreen(
     viewModel: SubredditViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val context = LocalContext.current
-    val displayMode by context.dataStore.data.map {
-        val viewModelName = it[stringPreferencesKey("display_mode")];
-        DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
-    }.collectAsState(DisplayMode.MASONRY)
-    val posts = viewModel.posts.collectAsLazyPagingItems()
+    val state by viewModel.state.collectAsState()
+    val subreddit = viewModel.route.name
+
+    SubredditScreen(
+        subreddit = subreddit,
+        state = state,
+        onEvent = viewModel::onEvent,
+        navController = navController
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubredditScreen(
+    subreddit: String,
+    state: SubredditUiState,
+    onEvent: (SubredditEvent) -> Unit,
+    navController: NavController
+) {
+    val posts = state.posts?.collectAsLazyPagingItems()
     var sortingSheet by remember { mutableStateOf(false) }
-    val sorting by viewModel.sorting.collectAsState(Sorting.Hot)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("r/${viewModel.route.name}")
+                    Text("r/$subreddit")
                 },
                 navigationIcon = {
                     IconButton(
@@ -83,13 +92,13 @@ fun SubredditScreen(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                         tooltip = {
                             PlainTooltip {
-                                Text((sorting).feed.replaceFirstChar {
+                                Text(state.sorting.feed.replaceFirstChar {
                                     if (it.isLowerCase()) it.titlecase(
                                         Locale.US
                                     ) else it.toString()
-                                } + when (sorting) {
-                                    is Sorting.Top -> " (${(sorting as Sorting.Top).time.toLabel()})"
-                                    is Sorting.Controversial -> " (${(sorting as Sorting.Controversial).time.toLabel()})"
+                                } + when (state.sorting) {
+                                    is Sorting.Top -> " (${state.sorting.time.toLabel()})"
+                                    is Sorting.Controversial -> " (${state.sorting.time.toLabel()})"
                                     else -> ""
                                 })
                             }
@@ -124,22 +133,34 @@ fun SubredditScreen(
                 onDismissRequest = {
                     sortingSheet = false
                 },
-                onSelectSorting = {
-                    viewModel.updateSorting(it)
+                onSelectSorting = { sorting ->
+                    onEvent(SubredditEvent.UpdateSorting(sorting))
                 },
-                sorting = sorting,
+                sorting = state.sorting,
             )
         }
 
-        Column(
-            modifier = Modifier.padding(it)
-        ) {
-            PostList(
-                posts = posts,
-                navController = navController,
-                displayMode = displayMode,
-                showSubreddit = false,
-            )
+        if (state.isLoading) {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier.padding(it)
+            ) {
+                PostList(
+                    posts = posts!!,
+                    navController = navController,
+                    displayMode = state.displayMode,
+                    showSubreddit = false,
+                )
+            }
         }
     }
 }

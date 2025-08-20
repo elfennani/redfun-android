@@ -9,15 +9,16 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import androidx.paging.map
-import com.elfen.redfun.data.mappers.asDomainModel
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
-import com.elfen.redfun.domain.repository.FeedRepository
+import com.elfen.redfun.domain.usecase.GetDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.GetFeedPagingUseCase
-import com.elfen.redfun.domain.usecase.GetSortingUseCase
-import com.elfen.redfun.domain.usecase.UpdateSortingUseCase
+import com.elfen.redfun.domain.usecase.GetFeedSortingUseCase
+import com.elfen.redfun.domain.usecase.GetNavBarShownUseCase
+import com.elfen.redfun.domain.usecase.UpdateDisplayModeUseCase
+import com.elfen.redfun.domain.usecase.UpdateFeedSortingUseCase
+import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -33,42 +34,53 @@ private const val TAG = "FeedViewModel"
 class FeedViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val getFeedPaging: GetFeedPagingUseCase,
-    private val updateSorting: UpdateSortingUseCase,
-    getSorting: GetSortingUseCase
+    private val updateSorting: UpdateFeedSortingUseCase,
+    private val updateDisplayMode: UpdateDisplayModeUseCase,
+    private val updateNavBarShown: UpdateNavBarShownUseCase,
+    getSorting: GetFeedSortingUseCase,
+    getDisplayMode: GetDisplayModeUseCase,
+    getNavBarShown: GetNavBarShownUseCase
 ) : ViewModel() {
-    val viewModeFlow = dataStore.data.map {
-        val viewModelName = it[stringPreferencesKey("display_mode")];
-        DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
-    }
-
     @OptIn(ExperimentalTime::class)
-    val state = getSorting().map {
-        val sorting = it ?: Sorting.Best
-
-        FeedState(
+    val state = combine(
+        getSorting(Feed.Home(Sorting.Best)),
+        getDisplayMode(),
+        getNavBarShown()
+    ) { sorting, viewMode, isNavBarShown ->
+        FeedUiState(
             isLoading = false,
             posts = getFeedPaging(Feed.Home(sorting)).cachedIn(viewModelScope),
             sorting = sorting,
-            onSortingChanged = { newSorting ->
-                viewModelScope.launch {
-                    Log.d(TAG, "onSortingChanged: $newSorting")
-                    updateSorting(newSorting)
-                }
-            },
-            displayMode = DisplayMode.MASONRY,
-            onDisplayModeChanged = ::updateViewMode
+            displayMode = viewMode,
+            isNavBarShown = isNavBarShown
         )
     }
-        .combine(viewModeFlow) { state, viewMode -> state.copy(displayMode = viewMode) }
-        .stateIn(viewModelScope, SharingStarted.Lazily, FeedState(isLoading = true))
+        .stateIn(viewModelScope, SharingStarted.Lazily, FeedUiState(isLoading = true))
 
-    private fun updateViewMode(displayMode: DisplayMode) {
-        Log.d(TAG, "updateViewMode: $displayMode (${displayMode == DisplayMode.MASONRY})")
-        viewModelScope.launch {
-            dataStore.edit {
-                it[stringPreferencesKey("display_mode")] = displayMode.name
+    fun onEvent(event: FeedEvent) {
+        when (event) {
+            is FeedEvent.Refetch -> {
+                Log.d(TAG, "onEvent: Refetch")
+            }
 
-                it[booleanPreferencesKey("nav_bar_shown")] = displayMode != DisplayMode.SCROLLER
+            is FeedEvent.ChangeSorting -> {
+                viewModelScope.launch {
+                    Log.d(TAG, "onEvent: ChangeSorting ${event.sorting}")
+                    updateSorting(feed = Feed.Home(sorting = event.sorting), event.sorting)
+                }
+            }
+
+            is FeedEvent.ChangeDisplayMode -> {
+                Log.d(TAG, "onEvent: ChangeDisplayMode ${event.displayMode}")
+                viewModelScope.launch { updateDisplayMode(event.displayMode) }
+            }
+
+            is FeedEvent.ToggleNavBar -> {
+                Log.d(TAG, "onEvent: ToggleNavBar")
+                viewModelScope.launch {
+                    val currentState = state.value.isNavBarShown
+                    updateNavBarShown(!currentState)
+                }
             }
         }
     }

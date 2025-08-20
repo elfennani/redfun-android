@@ -15,6 +15,7 @@ import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.PostDetails
 import com.elfen.redfun.domain.repository.SessionRepository
 import com.elfen.redfun.domain.repository.SettingsRepository
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -66,9 +67,23 @@ object AppModules {
             .create(PublicAPIService::class.java)
     }
 
+    @Singleton
+    @Provides
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(RemoteComment::class.java, CommentDeserializer())
+            .registerTypeAdapter(
+                PostDetails::class.javaObjectType,
+                PostDetailsDeserializer(GsonBuilder().create())
+            ).create()
+    }
+
     @OptIn(ExperimentalTime::class)
     @Provides
-    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepository): AuthAPIService {
+    fun provideAuthApiService(
+        sessionDao: SessionDao,
+        sessionRepo: SessionRepository
+    ): AuthAPIService {
         val logging = HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         val okHttpClient = OkHttpClient.Builder()
@@ -119,12 +134,6 @@ object AppModules {
     @Provides
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context) = context.dataStore
-
-    @Provides
-    @Singleton
-    fun provideSettingsRepository(@ApplicationContext context: Context): SettingsRepository {
-        return SettingsRepositoryImpl(context)
-    }
 
     @Provides
     @Singleton

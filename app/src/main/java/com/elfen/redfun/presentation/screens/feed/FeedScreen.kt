@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -63,30 +62,32 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    FeedScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        navController = navController
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeedScreen(
+    state: FeedUiState,
+    onEvent: (FeedEvent) -> Unit,
+    navController: NavController,
+) {
     val posts = state.posts?.collectAsLazyPagingItems()
     val scope = rememberCoroutineScope()
     var sortingSheet by remember { mutableStateOf(false) }
-
     var viewModeSheet by remember { mutableStateOf(false) }
-
-    val density = LocalDensity.current
-    val context = LocalContext.current
-    val dataStore = context.dataStore
-    val displayMode by dataStore.data.map {
-        val viewModelName = it[stringPreferencesKey("display_mode")];
-        DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
-    }.collectAsState(DisplayMode.MASONRY)
-    val navBarShown by dataStore.data
-        .map { it[booleanPreferencesKey("nav_bar_shown")] ?: true }
-        .collectAsState(initial = true)
 
     Scaffold(
         topBar = {
-            if (displayMode == DisplayMode.SCROLLER) return@Scaffold
+            if (state.displayMode == DisplayMode.SCROLLER) return@Scaffold
             TopAppBar(
                 title = { Text("Feed") },
                 actions = {
@@ -117,8 +118,8 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
                                         Locale.US
                                     ) else it.toString()
                                 } + when (state.sorting) {
-                                    is Sorting.Top -> " (${(state.sorting as Sorting.Top).time.toLabel()})"
-                                    is Sorting.Controversial -> " (${(state.sorting as Sorting.Controversial).time.toLabel()})"
+                                    is Sorting.Top -> " (${state.sorting.time.toLabel()})"
+                                    is Sorting.Controversial -> " (${state.sorting.time.toLabel()})"
                                     else -> ""
                                 })
                             }
@@ -148,7 +149,7 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
             )
         },
         floatingActionButton = {
-            if (displayMode == DisplayMode.SCROLLER) {
+            if (state.displayMode == DisplayMode.SCROLLER) {
                 Column(
                     modifier = Modifier
                         .padding(8.dp),
@@ -182,14 +183,12 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
                     FloatingActionButton(
                         onClick = {
                             scope.launch {
-                                dataStore.edit {
-                                    it[booleanPreferencesKey("nav_bar_shown")] = !navBarShown
-                                }
+                                onEvent(FeedEvent.ToggleNavBar)
                             }
                         },
                     ) {
                         Icon(
-                            if (navBarShown) Icons.Default.ArrowDropDown
+                            if (state.isNavBarShown) Icons.Default.ArrowDropDown
                             else Icons.Default.ArrowDropUp,
                             contentDescription = null,
                         )
@@ -197,12 +196,12 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
                 }
             }
         },
-        contentWindowInsets = if (navBarShown) ScaffoldDefaults.contentWindowInsets.only(
+        contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top
         ) else WindowInsets(0.dp)
     ) { innerPadding ->
 
-        if ((state.isLoading && !state.isFetchingNextPage) || posts == null) {
+        if (state.isLoading || posts == null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -212,36 +211,18 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
             ) {
                 CircularProgressIndicator()
             }
-        } else if (state.isError && !state.isFetchingNextPageError) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "Something went wrong!")
-                if (state.error != null)
-                    Text(text = state.error!!)
-            }
         } else {
             if (viewModeSheet) {
                 DisplayModeBottomSheet(
                     onDismissRequest = { viewModeSheet = false },
                     current = state.displayMode,
-                    onSelectDisplayMode = { mode ->
-                        state.onDisplayModeChanged(mode)
-                    }
+                    onSelectDisplayMode = { mode -> onEvent(FeedEvent.ChangeDisplayMode(mode)) }
                 )
             }
             if (sortingSheet) {
                 SortingBottomSheet(
-                    onDismissRequest = {
-                        sortingSheet = false
-                    },
-                    onSelectSorting = {
-                        state.onSortingChanged(it)
-                    },
+                    onDismissRequest = { sortingSheet = false },
+                    onSelectSorting = { onEvent(FeedEvent.ChangeSorting(it)) },
                     sorting = state.sorting,
                 )
             }
@@ -250,7 +231,7 @@ fun FeedScreen(navController: NavController, viewModel: FeedViewModel = hiltView
                 modifier = Modifier.padding(innerPadding),
                 posts = posts,
                 navController = navController,
-                displayMode = displayMode,
+                displayMode = state.displayMode,
                 showSubreddit = true,
             )
         }

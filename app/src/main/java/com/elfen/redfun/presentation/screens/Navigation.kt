@@ -44,6 +44,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.elfen.redfun.ANIM_DURATION_MILLIS
 import com.elfen.redfun.R
+import com.elfen.redfun.data.SettingsRepositoryImpl
 import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.presentation.screens.auth.AuthRoute
 import com.elfen.redfun.presentation.screens.auth.AuthScreen
@@ -99,7 +100,7 @@ fun Navigation() {
     val session =
         runBlocking { dataStore.data.map { it[stringPreferencesKey("session_id")] }.first() }
     val navBarShown by dataStore.data
-        .map { it[booleanPreferencesKey("nav_bar_shown")] ?: true }
+        .map { it[SettingsRepositoryImpl.NavBarShownKey] ?: true }
         .collectAsState(initial = true)
 
 

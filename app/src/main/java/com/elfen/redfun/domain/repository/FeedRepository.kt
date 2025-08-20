@@ -13,6 +13,12 @@ interface FeedRepository {
 
     fun getFeedPaging(feed: Feed): Flow<PagingData<FeedWithPost>>
     fun getPostWithComments(postId: String): Flow<Pair<Post, List<Comment>?>>
+    fun getSortingForFeed(feed: Feed): Flow<Sorting>
 
     suspend fun setSorting(sorting: Sorting)
+    suspend fun setSortingForFeed(feed: Feed, sorting: Sorting)
+
+    companion object {
+        val DEFAULT_SORTING = Sorting.Best
+    }
 }

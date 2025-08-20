@@ -2,11 +2,12 @@ package com.elfen.redfun.data
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.elfen.redfun.data.local.Database
-import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.dao.SortingDao
 import com.elfen.redfun.data.local.models.toDomain
 import com.elfen.redfun.data.local.models.toEntity
@@ -18,6 +19,7 @@ import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.name
+import com.elfen.redfun.domain.model.type
 import com.elfen.redfun.domain.repository.FeedRepository
 import com.elfen.redfun.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +33,7 @@ class FeedRepositoryImpl @Inject constructor(
     private val apiService: AuthAPIService,
     private val sessionRepo: SessionRepository,
     private val sortingDao: SortingDao,
+    private val dataStore: DataStore<Preferences>,
     private val database: Database
 ) : FeedRepository {
     @OptIn(ExperimentalPagingApi::class)
@@ -56,16 +59,27 @@ class FeedRepositoryImpl @Inject constructor(
         sortingDao.upsert(sorting.toEntity(session.userId))
     }
 
-    override fun getPostWithComments(id: String): Flow<Pair<Post, List<Comment>?>> = flow {
-        val cached = database.postDao().getPostWithMedia(id)?.asDomainModel()
+    override fun getPostWithComments(postId: String): Flow<Pair<Post, List<Comment>?>> = flow {
+        val cached = database.postDao().getPostWithMedia(postId)?.asDomainModel()
         if (cached != null) {
             emit(Pair(cached, null))
         }
 
-        val response = apiService.getComments(id)
+        val response = apiService.getComments(postId)
         val post = response.post.asDomainModel()
         val comments = response.comments.map { it.asDomainModel() }
 
         emit(Pair(post, comments))
+    }
+
+    override fun getSortingForFeed(feed: Feed): Flow<Sorting> = dataStore.data.map { prefs ->
+        val sortingName = prefs[stringPreferencesKey("feed_sorting_${feed.type()}")]
+        sortingName?.let { sorting -> Sorting.fromName(sorting) } ?: FeedRepository.DEFAULT_SORTING
+    }
+
+    override suspend fun setSortingForFeed(feed: Feed, sorting: Sorting) {
+        dataStore.edit { prefs ->
+            prefs[stringPreferencesKey("feed_sorting_${feed.type()}")] = sorting.name()
+        }
     }
 }

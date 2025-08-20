@@ -26,42 +26,47 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 
+@Composable
+fun SavedScreen(
+    navController: NavController,
+    viewModel: SavedViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+
+    SavedScreen(
+        state = state,
+        navController = navController
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedScreen(
-  navController: NavController,
-  viewModel: SavedViewModel = hiltViewModel()
+    state: SavedUiState,
+    navController: NavController,
 ) {
-  val context = LocalContext.current
-  val displayMode by context.dataStore.data.map {
-    val viewModelName = it[stringPreferencesKey("display_mode")];
-    DisplayMode.valueOf(viewModelName ?: DisplayMode.MASONRY.name)
-  }.collectAsState(DisplayMode.MASONRY)
-    val navBarShown by context.dataStore.data.map {
-        it[booleanPreferencesKey("nav_bar_shown")] ?: true
-    }.collectAsState(true)
-  val posts = viewModel.posts.collectAsLazyPagingItems()
+    val posts = state.posts.collectAsLazyPagingItems()
 
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-          Text("Saved Posts")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Saved Posts")
+                },
+            )
         },
-      )
-    },
-    contentWindowInsets = if (navBarShown) ScaffoldDefaults.contentWindowInsets.only(
-      WindowInsetsSides.Top
-    ) else WindowInsets(0.dp)
-  ) {
-    Column(
-      modifier = Modifier.padding(it)
+        contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
+            WindowInsetsSides.Top
+        ) else WindowInsets(0.dp)
     ) {
-      PostList(
-        posts = posts,
-        navController = navController,
-        displayMode = displayMode,
-      )
+        Column(
+            modifier = Modifier.padding(it)
+        ) {
+            PostList(
+                posts = posts,
+                navController = navController,
+                displayMode = state.displayMode,
+            )
+        }
     }
-  }
 }
