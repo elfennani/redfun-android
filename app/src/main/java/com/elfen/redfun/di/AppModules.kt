@@ -3,7 +3,6 @@ package com.elfen.redfun.di
 import android.content.Context
 import android.util.Log
 import androidx.room.Room
-import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.SettingsRepositoryImpl
 import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.SessionDao
@@ -14,6 +13,7 @@ import com.elfen.redfun.data.remote.CommentDeserializer
 import com.elfen.redfun.data.remote.PostDetailsDeserializer
 import com.elfen.redfun.data.remote.models.RemoteComment
 import com.elfen.redfun.data.remote.models.PostDetails
+import com.elfen.redfun.domain.repository.SessionRepository
 import com.elfen.redfun.domain.repository.SettingsRepository
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -68,7 +68,7 @@ object AppModules {
 
     @OptIn(ExperimentalTime::class)
     @Provides
-    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepo): AuthAPIService {
+    fun provideAuthApiService(sessionDao: SessionDao, sessionRepo: SessionRepository): AuthAPIService {
         val logging = HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         val okHttpClient = OkHttpClient.Builder()

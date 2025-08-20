@@ -4,7 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.elfen.redfun.data.SessionRepo
+import com.elfen.redfun.domain.repository.SessionRepository
+
 import com.elfen.redfun.presentation.screens.auth.AuthState.*
 import com.elfen.redfun.presentation.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val sessionRepo: SessionRepo
+    private val sessionRepo: SessionRepository
 ) : ViewModel() {
     val code = savedStateHandle.toRoute<AuthRoute>().code
     private val _state = MutableStateFlow<AuthState>(AuthState.Loading)

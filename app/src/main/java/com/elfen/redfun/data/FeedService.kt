@@ -20,6 +20,7 @@ import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.name
+import com.elfen.redfun.domain.repository.SessionRepository
 import com.elfen.redfun.presentation.utils.Resource
 import com.elfen.redfun.presentation.utils.resourceOf
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,7 @@ private const val TAG = "FeedService"
 class FeedService @Inject constructor(
     private val apiService: AuthAPIService,
     private val feedCursorDao: FeedCursorDao,
-    private val sessionRepo: SessionRepo,
+    private val sessionRepo: SessionRepository,
     private val sortingDao: SortingDao,
     private val dataStore: DataStore<Preferences>,
     private val database: Database

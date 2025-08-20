@@ -2,7 +2,6 @@ package com.elfen.redfun.data.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.local.dao.FeedCursorDao
 import com.elfen.redfun.data.local.models.FeedCursorEntity
 import com.elfen.redfun.data.remote.AuthAPIService
@@ -11,11 +10,12 @@ import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.ResourceError
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.getTimeParameter
+import com.elfen.redfun.domain.repository.SessionRepository
 import com.elfen.redfun.presentation.utils.toResource
 
 class FeedPagingSource(
     val apiService: AuthAPIService,
-    val sessionRepo: SessionRepo,
+    val sessionRepo: SessionRepository,
     val feedCursorDao: FeedCursorDao,
     val sorting: Sorting
 ) : PagingSource<String, Post>() {

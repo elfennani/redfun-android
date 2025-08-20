@@ -8,7 +8,6 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.elfen.redfun.data.SessionRepo
 import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.models.FeedPostEntity
 import com.elfen.redfun.data.local.models.PostEntity
@@ -19,6 +18,7 @@ import com.elfen.redfun.data.remote.models.asDomainModel
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.getTimeParameter
 import com.elfen.redfun.domain.model.name
+import com.elfen.redfun.domain.repository.SessionRepository
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -27,7 +27,7 @@ private const val TAG = "FeedMediator"
 class FeedMediator(
     val apiService: AuthAPIService,
     val database: Database,
-    val sessionRepo: SessionRepo,
+    val sessionRepo: SessionRepository,
     val feed: Feed,
 ) : RemoteMediator<Int, FeedWithPost>() {
 

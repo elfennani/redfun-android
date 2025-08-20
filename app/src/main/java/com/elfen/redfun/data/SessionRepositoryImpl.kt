@@ -10,6 +10,7 @@ import com.elfen.redfun.data.local.Database
 import com.elfen.redfun.data.local.dao.SessionDao
 import com.elfen.redfun.data.local.models.SessionEntity
 import com.elfen.redfun.data.remote.PublicAPIService
+import com.elfen.redfun.domain.repository.SessionRepository
 import com.elfen.redfun.presentation.utils.Resource
 import com.elfen.redfun.presentation.utils.resourceOf
 import kotlinx.coroutines.flow.first
@@ -19,14 +20,14 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @Singleton
-class SessionRepo @Inject constructor(
+class SessionRepositoryImpl @Inject constructor(
     private val publicApiService: PublicAPIService,
     private val sessionDao: SessionDao,
     private val dataStore: DataStore<Preferences>,
     private val database: Database,
-) {
+): SessionRepository {
     @OptIn(ExperimentalTime::class)
-    suspend fun authenticate(code: String): Resource<String> {
+    override suspend fun authenticate(code: String): Resource<String> {
         val clientId =
             Base64.encodeToString((BuildConfig.clientId + ":").toByteArray(), Base64.NO_WRAP)
         val redirectUri = BuildConfig.redirectUri
@@ -62,20 +63,20 @@ class SessionRepo @Inject constructor(
         }
     }
 
-    suspend fun changeSession(sessionId: String) {
+    override suspend fun changeSession(sessionId: String) {
         resetCache();
         dataStore.edit {
             it[stringPreferencesKey("session_id")] = sessionId
         }
     }
 
-    suspend fun resetCache() {
+    override suspend fun resetCache() {
         database.postDao().deleteAll()
         database.feedCursorDao().deleteAll()
     }
 
     @OptIn(ExperimentalTime::class)
-    suspend fun refreshSession(sessionId: String): SessionEntity {
+    override suspend fun refreshSession(sessionId: String): SessionEntity {
         val clientId =
             Base64.encodeToString((BuildConfig.clientId + ":").toByteArray(), Base64.NO_WRAP)
         val redirectUri = BuildConfig.redirectUri
@@ -97,12 +98,12 @@ class SessionRepo @Inject constructor(
         return sessionDao.getSession(sessionId)!!
     }
 
-    suspend fun getCurrentSession(): SessionEntity? {
+    override suspend fun getCurrentSession(): SessionEntity? {
         val sessionId = dataStore.data.first()[stringPreferencesKey("session_id")] ?: return null;
         val session = sessionDao.getSession(sessionId)
 
         return session
     }
 
-    fun sessions() = sessionDao.getSessions()
+    override fun sessions() = sessionDao.getSessions()
 }

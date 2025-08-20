@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elfen.redfun.data.SessionRepo
+import com.elfen.redfun.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val sessionRepo: SessionRepo,
+    private val sessionRepo: SessionRepository,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     val sessions =
