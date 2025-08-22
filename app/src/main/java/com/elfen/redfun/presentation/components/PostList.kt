@@ -44,6 +44,7 @@ import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.ResourceError
 import com.elfen.redfun.presentation.screens.details.PostDetailRoute
+import com.elfen.redfun.presentation.screens.details.PostDetailScreen
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.utils.plus
 import kotlinx.coroutines.flow.mapNotNull
@@ -182,24 +183,40 @@ fun PostList(
         }
     } else {
         LazyVerticalStaggeredGrid(
-            contentPadding = innerPadding + PaddingValues(16.dp),
+            contentPadding = innerPadding + PaddingValues(4.dp),
             columns = StaggeredGridCells.Fixed(2),
-            verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalItemSpacing = 4.dp,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             state = lazyStaggeredGridState,
             modifier = modifier
         ) {
 
-            items(count = posts.itemCount) { index ->
+            items(count = posts.itemCount, span = {
+                val post = posts[it]
+
+                if (
+                    post != null &&
+                    (
+                            (post.video != null && (post.video.width.toFloat() / post.video.height.toFloat()) > 4f / 3f) ||
+                                    (!post.images.isNullOrEmpty() && ((post.images.first().width.toFloat() / post.images.first().height) > 4f / 3f))
+                            )
+                ) {
+                    StaggeredGridItemSpan.FullLine
+                } else {
+                    StaggeredGridItemSpan.SingleLane
+                }
+            }) { index ->
                 val post = posts[index]
                 if (post != null) {
                     CompactPost(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable { navController.navigate(PostDetailRoute(post.id)) },
+                            .clip(RoundedCornerShape(12.dp)),
                         post = post,
                         onClickSubreddit = {
                             navController.navigate(SubredditRoute(post.subreddit))
+                        },
+                        onClickPost = {
+                            navController.navigate(PostDetailRoute(post.id))
                         },
                         showSubreddit = showSubreddit
                     )

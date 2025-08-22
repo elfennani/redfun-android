@@ -21,12 +21,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -34,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
 import java.time.Duration
 import kotlin.math.abs
 import androidx.media3.ui.PlayerView
@@ -56,6 +62,7 @@ import com.elfen.redfun.R
 import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.presentation.utils.isWifiNetwork
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -108,20 +115,51 @@ fun shortenNumber(value: Long): String {
     }.replace(".0", "") // Remove trailing ".0" if not needed
 }
 
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CompactPost(
     modifier: Modifier = Modifier,
     post: Post,
     showSubreddit: Boolean = true,
     onClickSubreddit: () -> Unit,
+    onClickPost: () -> Unit
 ) {
     val context = LocalContext.current
-    val shape = RoundedCornerShape(6.dp)
+    val scope = rememberCoroutineScope()
+    val shape = RoundedCornerShape(12.dp)
+    var detailBottomSheetVisible by remember { mutableStateOf(false) }
+    val detailSheetState = rememberModalBottomSheetState(false)
+
+    if (detailBottomSheetVisible) {
+        ModalBottomSheet(
+            sheetState = detailSheetState,
+            onDismissRequest = { detailBottomSheetVisible = false },
+        ) {
+            PostCard(
+                post = post,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                        onClickPost()
+                        scope.launch {
+                            detailSheetState.hide()
+                        }.invokeOnCompletion {
+                            detailBottomSheetVisible = false
+                        }
+                    },
+                onClickSubreddit = onClickSubreddit,
+                truncate = false,
+                showSubreddit = true
+            )
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
+            .clickable {
+                detailBottomSheetVisible = true
+            }
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -159,18 +197,7 @@ fun CompactPost(
                 val player =
                     remember { androidx.media3.exoplayer.ExoPlayer.Builder(context).build() }
                 var isPlaying by remember { mutableStateOf(true) }
-
-                LaunchedEffect(key1 = player) {
-                    player.setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
-                    player.prepare()
-                    player.playWhenReady = true
-
-                    player.addListener(object : androidx.media3.common.Player.Listener {
-                        override fun onIsPlayingChanged(value: Boolean) {
-                            isPlaying = value
-                        }
-                    })
-                }
+                var showThumbnail by remember { mutableStateOf(true) }
 
                 LaunchedEffect(settings) {
                     if (settings != null) {
@@ -185,6 +212,21 @@ fun CompactPost(
                 }
 
                 DisposableEffect(key1 = player) {
+                    player.setMediaItem(MediaItem.fromUri(post.video.source))
+                    player.prepare()
+                    player.playWhenReady = true
+
+                    player.addListener(object : androidx.media3.common.Player.Listener {
+                        override fun onIsPlayingChanged(value: Boolean) {
+                            isPlaying = value
+                        }
+
+                        override fun onRenderedFirstFrame() {
+                            super.onRenderedFirstFrame()
+                            showThumbnail = false
+                        }
+                    })
+
                     onDispose {
                         player.release()
                     }
@@ -220,6 +262,15 @@ fun CompactPost(
                             playerView.player = player
                         }
                     )
+
+                    if (showThumbnail)
+                        AsyncImage(
+                            model = post.thumbnail,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .matchParentSize(),
+                            contentScale = ContentScale.Crop
+                        )
 
                     if (!isPlaying) {
                         Box(
@@ -295,33 +346,56 @@ fun CompactPost(
                 }
             }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(-2.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.Start
-        ) {
-            if(showSubreddit){
-                Text(
-                    "r/${post.subreddit}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { onClickSubreddit() },
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 0.25.sp
+
+        if (post.images.isNullOrEmpty() && post.video == null) {
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .weight(1f)
+                ) {
+                    if (showSubreddit) {
+                        Text(
+                            "r/${post.subreddit}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp,
+                            maxLines = 1,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 0.25.sp
+                        )
+                    }
+
+                    Text(
+                        post.title,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleSmall,
+                        lineHeight = 18.sp,
+                        fontSize = 12.sp,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.MoreHoriz,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-
-            Text(
-                post.title,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleSmall,
-                lineHeight = 18.sp,
-                fontSize = 12.sp,
-            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.End
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreHoriz,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }

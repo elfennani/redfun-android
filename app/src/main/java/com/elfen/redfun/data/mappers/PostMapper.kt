@@ -56,6 +56,7 @@ fun FeedWithPost.asDomainModel() = PostWithMedia(post = post, media = media).asD
 fun Link.asDomainModel(): Post {
     var images = emptyList<MediaImage>()
     var video: MediaVideo? = null
+    var thumbnail = this.thumbnail
 
     if (mediaMetadata != null) {
         val first = mediaMetadata.values.first()
@@ -103,6 +104,10 @@ fun Link.asDomainModel(): Post {
             isGif = false,
             fallback = null
         )
+    }
+
+    if((this.preview?.images?.size ?: 0) > 0){
+        thumbnail = preview!!.images.first().source.url
     }
 
     if (preview?.images?.isNotEmpty() == true && preview.enabled == true) {
