@@ -36,7 +36,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -63,6 +62,7 @@ import com.elfen.redfun.presentation.screens.profile.ProfileScreen
 import com.elfen.redfun.presentation.screens.saved.SavedRoute
 import com.elfen.redfun.presentation.screens.saved.SavedScreen
 import com.elfen.redfun.presentation.screens.search.SearchRoute
+import com.elfen.redfun.presentation.screens.search.SearchScreen
 import com.elfen.redfun.presentation.screens.sessions.SessionRoute
 import com.elfen.redfun.presentation.screens.sessions.SessionScreen
 import com.elfen.redfun.presentation.screens.settings.SettingsRoute
@@ -221,6 +221,9 @@ fun Navigation() {
             }
             composable<SettingsRoute> {
                 SettingsScreen(navController)
+            }
+            composable<SearchRoute> {
+                SearchScreen(navController)
             }
         }
     }

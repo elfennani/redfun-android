@@ -17,10 +17,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
@@ -52,6 +54,7 @@ import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.components.DisplayModeBottomSheet
 import com.elfen.redfun.presentation.components.SortingBottomSheet
+import com.elfen.redfun.presentation.screens.search.SearchRoute
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -81,11 +84,20 @@ private fun FeedScreen(
     Scaffold(
         topBar = {
             if (state.displayMode != DisplayMode.SCROLLER)
-                TopAppBar(title = { Text("Feed") })
+                TopAppBar(
+                    title = { Text("Feed") },
+                    actions = {
+                        IconButton(onClick = {
+                            navController.navigate(SearchRoute)
+                        }) {
+                            Icon(Icons.Default.Search, null)
+                        }
+                    }
+                )
         },
         contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top
-        ) else WindowInsets(0,0,0,0)
+        ) else WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
 
         if (state.isLoading || posts == null) {
