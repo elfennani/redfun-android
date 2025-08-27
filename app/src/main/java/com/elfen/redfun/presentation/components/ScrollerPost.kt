@@ -23,8 +23,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +60,9 @@ import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.data.local.dataStore
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Sorting
+import com.elfen.redfun.presentation.screens.feed.FeedEvent
 import com.elfen.redfun.presentation.utils.rememberPlayerTimelineState
 import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
@@ -72,12 +79,34 @@ fun ScrollerPost(
     showSubreddit: Boolean = true,
     onPostClick: () -> Unit,
     onClickSubreddit: () -> Unit = {},
-    shouldMute: Boolean = true
+    sorting: Sorting? = null,
+    navBarShown: Boolean? = null,
+    onSelectSorting: (Sorting) -> Unit = {},
+    onSelectDisplayMode: (DisplayMode) -> Unit = {},
+    onNavBarShownChange: (Boolean) -> Unit = {},
+    shouldMute: Boolean = true,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val exoPlayer = rememberExoPlayer(post, muted = shouldMute)
     val timelineState = rememberPlayerTimelineState(player = exoPlayer, 250)
+    var sortingSheet by remember { mutableStateOf(false) }
+    var viewModeSheet by remember { mutableStateOf(false) }
+
+    if (viewModeSheet) {
+        DisplayModeBottomSheet(
+            onDismissRequest = { viewModeSheet = false },
+            current = DisplayMode.SCROLLER,
+            onSelectDisplayMode = { mode -> onSelectDisplayMode(mode); }
+        )
+    }
+    if (sortingSheet) {
+        SortingBottomSheet(
+            onDismissRequest = { sortingSheet = false },
+            onSelectSorting = { sort -> onSelectSorting(sort); },
+            sorting = sorting,
+        )
+    }
 
     LaunchedEffect(exoPlayer) {
         exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
@@ -96,24 +125,24 @@ fun ScrollerPost(
             },
             isScroller = true
         )
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0f to Color.Transparent,
+                            0.5f to Color.Black.copy(alpha = 0.5f),
+                            1f to Color.Black.copy(alpha = 0.8f)
+                        )
+                    )
+                )
+                .align(Alignment.BottomCenter),
+            verticalAlignment = Alignment.Bottom
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0f to Color.Transparent,
-                                0.5f to Color.Black.copy(alpha = 0.5f),
-                                1f to Color.Black.copy(alpha = 0.8f)
-                            )
-                        )
-                    )
-                    .padding(end = 80.dp)
+                    .weight(1f)
                     .padding(8.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
@@ -242,7 +271,46 @@ fun ScrollerPost(
                 }
             }
 
+            Column(
+                modifier = Modifier
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                FloatingActionButton(onClick = {
+                    viewModeSheet = true
+                }) {
+                    Icon(
+                        painterResource(R.drawable.outline_view_quilt_24),
+                        contentDescription = "Change Display Mode",
+                    )
+                }
 
+                if (sorting != null) {
+                    FloatingActionButton(
+                        onClick = {
+                            sortingSheet = true
+                        },
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.outline_sort_24),
+                            contentDescription = "Change Sorting",
+                        )
+                    }
+                }
+
+                if (navBarShown != null) {
+                    FloatingActionButton(
+                        onClick = { onNavBarShownChange(!navBarShown) },
+                    ) {
+                        Icon(
+                            if (navBarShown) Icons.Default.ArrowDropDown
+                            else Icons.Default.ArrowDropUp,
+                            contentDescription = null,
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
@@ -14,12 +13,12 @@ import com.elfen.redfun.domain.usecase.GetDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.GetFeedPagingUseCase
 import com.elfen.redfun.domain.usecase.GetFeedSortingUseCase
 import com.elfen.redfun.domain.usecase.GetNavBarShownUseCase
+import com.elfen.redfun.domain.usecase.UpdateDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.UpdateFeedSortingUseCase
+import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +27,8 @@ import javax.inject.Inject
 class SubredditViewModel @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val updateFeedSorting: UpdateFeedSortingUseCase,
+    private val updateDisplayMode: UpdateDisplayModeUseCase,
+    private val updateNavBarShown: UpdateNavBarShownUseCase,
     savedStateHandle: SavedStateHandle,
     getFeedPaging: GetFeedPagingUseCase,
     getDisplayMode: GetDisplayModeUseCase,
@@ -60,7 +61,17 @@ class SubredditViewModel @Inject constructor(
 
     fun onEvent(event: SubredditEvent) {
         when (event) {
-            is SubredditEvent.UpdateSorting -> updateSorting(event.sorting)
+            is SubredditEvent.ChangeSorting -> updateSorting(event.sorting)
+            is SubredditEvent.ChangeDisplayMode -> {
+                viewModelScope.launch {
+                    updateDisplayMode(event.displayMode)
+                }
+            }
+            is SubredditEvent.ToggleNavBar -> {
+                viewModelScope.launch {
+                    updateNavBarShown(!state.value.isNavBarShown)
+                }
+            }
         }
     }
 }

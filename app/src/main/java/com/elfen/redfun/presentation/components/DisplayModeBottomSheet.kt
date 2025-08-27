@@ -1,4 +1,4 @@
-package com.elfen.redfun.presentation.screens.feed.components
+package com.elfen.redfun.presentation.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background

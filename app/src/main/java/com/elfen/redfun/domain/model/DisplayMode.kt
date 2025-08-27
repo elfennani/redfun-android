@@ -11,3 +11,9 @@ fun DisplayMode.icon() = when (this) {
     DisplayMode.SCROLLER -> R.drawable.solar__posts_carousel_vertical_bold_duotone
     DisplayMode.LIST -> R.drawable.outline_lists_24
 }
+
+fun DisplayMode.toLabel() = when (this) {
+    DisplayMode.MASONRY -> "Gallery"
+    DisplayMode.SCROLLER -> "Scroller"
+    DisplayMode.LIST -> "List"
+}

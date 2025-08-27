@@ -41,17 +41,11 @@ fun Sorting.name(): String = when(this){
     is Sorting.Controversial -> "controversial-${time.name}"
 }
 
-//fun Sorting.fromName(name: String): Sorting = when(name){
-//    "best" -> Sorting.Best
-//    "hot" -> Sorting.Hot
-//    "new" -> Sorting.New
-//    "rising" -> Sorting.Rising
-//    else -> {
-//        val parts = name.split("-")
-//        when(parts[0]){
-//            "top" -> Sorting.Top(SortingTime.valueOf(parts[1]))
-//            "controversial" -> Sorting.Controversial(SortingTime.valueOf(parts[1]))
-//            else -> throw IllegalArgumentException("Unknown sorting name: $name")
-//        }
-//    }
-//}
+fun Sorting.toLabel(): String = when(this){
+    is Sorting.Best -> "Best"
+    is Sorting.Hot -> "Hot"
+    is Sorting.New -> "New"
+    is Sorting.Rising -> "Rising"
+    is Sorting.Top -> "Top (${time.toLabel()})"
+    is Sorting.Controversial -> "Controversial (${time.toLabel()})"
+}

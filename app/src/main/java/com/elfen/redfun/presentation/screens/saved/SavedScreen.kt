@@ -35,7 +35,8 @@ fun SavedScreen(
 
     SavedScreen(
         state = state,
-        navController = navController
+        navController = navController,
+        onEvent = viewModel::onEvent
     )
 }
 
@@ -44,6 +45,7 @@ fun SavedScreen(
 fun SavedScreen(
     state: SavedUiState,
     navController: NavController,
+    onEvent: (SavedEvent) -> Unit = { }
 ) {
     val posts = state.posts.collectAsLazyPagingItems()
 
@@ -66,6 +68,9 @@ fun SavedScreen(
                 posts = posts,
                 navController = navController,
                 displayMode = state.displayMode,
+                navBarShown = state.isNavBarShown,
+                onNavBarShownChange = { onEvent(SavedEvent.ToggleNavBar) },
+                onSelectDisplayMode = { mode -> onEvent(SavedEvent.ChangeDisplayMode(mode)) }
             )
         }
     }

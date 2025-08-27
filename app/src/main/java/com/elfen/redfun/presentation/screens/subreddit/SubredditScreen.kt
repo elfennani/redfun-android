@@ -6,7 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -43,7 +48,7 @@ import com.elfen.redfun.R
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
-import com.elfen.redfun.presentation.screens.feed.components.SortingBottomSheet
+import com.elfen.redfun.presentation.components.SortingBottomSheet
 import java.util.Locale
 
 @Composable
@@ -71,7 +76,6 @@ fun SubredditScreen(
     navController: NavController
 ) {
     val posts = state.posts?.collectAsLazyPagingItems()
-    var sortingSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -86,60 +90,10 @@ fun SubredditScreen(
                         Icon(Icons.AutoMirrored.Default.ArrowBack, null)
                     }
                 },
-                actions = {
-
-                    TooltipBox(
-                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = {
-                            PlainTooltip {
-                                Text(state.sorting.feed.replaceFirstChar {
-                                    if (it.isLowerCase()) it.titlecase(
-                                        Locale.US
-                                    ) else it.toString()
-                                } + when (state.sorting) {
-                                    is Sorting.Top -> " (${state.sorting.time.toLabel()})"
-                                    is Sorting.Controversial -> " (${state.sorting.time.toLabel()})"
-                                    else -> ""
-                                })
-                            }
-                        },
-                        state = rememberTooltipState()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-                                .size(44.dp)
-                                .clickable {
-                                    sortingSheet = true
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                painterResource(R.drawable.outline_sort_24),
-                                null,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
             )
-        }
+        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     ) {
-        if (sortingSheet) {
-            SortingBottomSheet(
-                onDismissRequest = {
-                    sortingSheet = false
-                },
-                onSelectSorting = { sorting ->
-                    onEvent(SubredditEvent.UpdateSorting(sorting))
-                },
-                sorting = state.sorting,
-            )
-        }
-
         if (state.isLoading) {
             Column(
                 modifier = Modifier
@@ -159,6 +113,11 @@ fun SubredditScreen(
                     navController = navController,
                     displayMode = state.displayMode,
                     showSubreddit = false,
+                    sorting = state.sorting,
+                    onSelectDisplayMode = { mode -> onEvent(SubredditEvent.ChangeDisplayMode(mode)) },
+                    onSelectSorting = { sort -> onEvent(SubredditEvent.ChangeSorting(sort)) },
+                    navBarShown = state.isNavBarShown,
+                    onNavBarShownChange = { onEvent(SubredditEvent.ToggleNavBar) }
                 )
             }
         }

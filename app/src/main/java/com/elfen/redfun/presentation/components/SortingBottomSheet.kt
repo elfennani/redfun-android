@@ -1,4 +1,4 @@
-package com.elfen.redfun.presentation.screens.feed.components
+package com.elfen.redfun.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
