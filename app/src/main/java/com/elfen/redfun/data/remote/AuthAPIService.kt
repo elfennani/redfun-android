@@ -5,13 +5,18 @@ import com.elfen.redfun.data.remote.models.Link
 import com.elfen.redfun.data.remote.models.Listing
 import com.elfen.redfun.data.remote.models.PostDetails
 import com.elfen.redfun.data.remote.models.RemoteProfile
+import com.elfen.redfun.data.remote.models.RemoteSubreddit
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AuthAPIService {
     @GET("/{feed}?raw_json=1&limit=25&sr_detail=1")
-    suspend fun getPosts(@Path("feed") feed: String = "best", @Query("after") after: String? = null, @Query("t") time: String? = null): DataCollection<Listing<DataCollection<Link>>>
+    suspend fun getPosts(
+        @Path("feed") feed: String = "best",
+        @Query("after") after: String? = null,
+        @Query("t") time: String? = null
+    ): DataCollection<Listing<DataCollection<Link>>>
 
     @GET("/comments/{id}?threaded=0&showmedia=1&raw_json=1&sr_detail=1")
     suspend fun getComments(@Path("id") id: String): PostDetails
@@ -32,4 +37,13 @@ interface AuthAPIService {
         @Query("after") after: String? = null,
         @Query("t") time: String? = null
     ): DataCollection<Listing<DataCollection<Link>>>
+
+    @GET("/api/subreddit_autocomplete_v2?include_profiles=0&raw_json=1")
+    suspend fun getSubredditSuggestions(@Query("query") query: String): DataCollection<Listing<DataCollection<RemoteSubreddit>>>
+
+    @GET("/users/search?sr_detail=1&raw_json=1&sr_detail=1")
+    suspend fun getUserSuggestions(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 5
+    ): DataCollection<Listing<DataCollection<RemoteProfile>>>
 }

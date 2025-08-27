@@ -48,7 +48,7 @@ class SessionRepositoryImpl @Inject constructor(
                     refreshToken = response.refreshToken!!,
                     expiresAt = Clock.System.now().epochSeconds + response.expiresIn,
                     username = profile.name,
-                    displayName = profile.subreddit.title,
+                    displayName = profile.subreddit?.title,
                     avatarUrl = profile.iconImg
                 )
             )
