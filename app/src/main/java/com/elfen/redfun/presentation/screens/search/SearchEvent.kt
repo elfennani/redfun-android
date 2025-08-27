@@ -8,5 +8,6 @@ sealed class SearchEvent {
     data class Search(val query: String) : SearchEvent()
     data class ChangeSorting(val sorting: Sorting) : SearchEvent()
     data class ChangeDisplayMode(val displayMode: DisplayMode) : SearchEvent()
+    data class SelectSubreddit(val subreddit: String?) : SearchEvent()
     object ClearQuery : SearchEvent()
 }

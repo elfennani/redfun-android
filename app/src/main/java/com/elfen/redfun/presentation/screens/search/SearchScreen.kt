@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -134,15 +135,47 @@ private fun SearchScreen(
                             imeAction = ImeAction.Search
                         ),
                         decorationBox = {
-                            Box(contentAlignment = Alignment.CenterStart) {
-                                if (state.query.isEmpty()) {
-                                    Text(
-                                        "Search",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (state.selectedSubreddit != null) {
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .clickable { onEvent(SearchEvent.SelectSubreddit(null)) }
+                                            .background(
+                                                MaterialTheme.colorScheme.primaryContainer,
+                                                CircleShape
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            "r/${state.selectedSubreddit}",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        Icon(
+                                            Icons.Default.Close,
+                                            null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                        )
+                                    }
                                 }
+                                Box(contentAlignment = Alignment.CenterStart) {
+                                    if (state.query.isEmpty()) {
+                                        Text(
+                                            "Search",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
 
-                                it()
+                                    it()
+                                }
                             }
                         }
                     )
@@ -150,7 +183,7 @@ private fun SearchScreen(
             }
         }
     ) { paddingValues ->
-        if (isFocused) {
+        if (isFocused && state.selectedSubreddit == null) {
             LazyColumn(
                 contentPadding = paddingValues + PaddingValues(
                     vertical = 16.dp,
@@ -198,7 +231,8 @@ private fun SearchScreen(
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable { onNavigate(SubredditRoute(it.name)) }
                                 .padding(8.dp),
-                            subreddit = it
+                            subreddit = it,
+                            onSelectSubreddit = { name -> onEvent(SearchEvent.SelectSubreddit(name)) }
                         )
                     }
 

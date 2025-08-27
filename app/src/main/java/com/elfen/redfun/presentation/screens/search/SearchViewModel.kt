@@ -42,7 +42,11 @@ class SearchViewModel @Inject constructor(
             sorting = sorting,
             displayMode = displayMode,
             posts = if (state.searchedQuery.isNotEmpty()) getFeedPagingUseCase(
-                Feed.Search(query = state.searchedQuery, sorting = sorting)
+                Feed.Search(
+                    query = state.searchedQuery,
+                    sorting = sorting,
+                    subreddit = state.selectedSubreddit
+                )
             ) else state.posts
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, SearchUiState())
@@ -88,6 +92,22 @@ class SearchViewModel @Inject constructor(
 
             is SearchEvent.ChangeDisplayMode -> viewModelScope.launch {
                 updateDisplayMode(event.displayMode)
+            }
+
+            is SearchEvent.SelectSubreddit -> {
+                _state.update {
+                    it.copy(
+                        selectedSubreddit = event.subreddit,
+                        query = if (event.subreddit == null) it.query else "",
+                        posts = if (event.subreddit == null) it.posts else getFeedPagingUseCase(
+                            Feed.Search(
+                                query = it.query,
+                                sorting = it.sorting ?: Sorting.Best,
+                                subreddit = event.subreddit
+                            )
+                        )
+                    )
+                }
             }
         }
     }
