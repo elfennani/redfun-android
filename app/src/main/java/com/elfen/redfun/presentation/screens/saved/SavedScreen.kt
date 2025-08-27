@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import com.elfen.redfun.presentation.screens.flair.FlairRoute
 
 @Composable
 fun SavedScreen(
@@ -70,7 +71,15 @@ fun SavedScreen(
                 displayMode = state.displayMode,
                 navBarShown = state.isNavBarShown,
                 onNavBarShownChange = { onEvent(SavedEvent.ToggleNavBar) },
-                onSelectDisplayMode = { mode -> onEvent(SavedEvent.ChangeDisplayMode(mode)) }
+                onSelectDisplayMode = { mode -> onEvent(SavedEvent.ChangeDisplayMode(mode)) },
+                navigateFlair = { subreddit, flair ->
+                    navController.navigate(
+                        FlairRoute(
+                            subreddit = subreddit,
+                            flair = flair
+                        )
+                    )
+                }
             )
         }
     }

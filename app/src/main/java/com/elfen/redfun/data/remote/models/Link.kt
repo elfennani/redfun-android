@@ -37,6 +37,7 @@ data class Link(
     @SerializedName("thumbnail_width") val thumbnailWidth: Int?,
     @SerializedName("is_video") val isVideo: Boolean?,
     @SerializedName("sr_detail") val subredditDetails: SubredditDetails,
+    @SerializedName("link_flair_text") val linkFlairText: String?,
     val media: Media?
 )
 

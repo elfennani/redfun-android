@@ -122,7 +122,8 @@ fun CompactPost(
     post: Post,
     showSubreddit: Boolean = true,
     onClickSubreddit: () -> Unit,
-    onClickPost: () -> Unit
+    onClickPost: () -> Unit,
+    navigateToFlair: (subreddit: String, flair: String) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -147,9 +148,12 @@ fun CompactPost(
                             detailBottomSheetVisible = false
                         }
                     },
-                onClickSubreddit = onClickSubreddit,
+                navigateSubreddit = onClickSubreddit,
                 truncate = false,
-                showSubreddit = true
+                showSubreddit = true,
+                navigateToFlair = {
+                    navigateToFlair(post.subreddit, it)
+                }
             )
         }
     }

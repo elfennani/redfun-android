@@ -54,6 +54,18 @@ interface AuthAPIService {
         @Query("sort") sort: String = "relevance",
         @Query("t") time: String? = null,
         @Query("type") type: String = "link",
-        @Query("limit") limit: Int = 25
+        @Query("limit") limit: Int = 25,
+    ): DataCollection<Listing<DataCollection<Link>>>
+
+    @GET("/r/{subreddit}/search?sr_detail=1&raw_json=1")
+    suspend fun getSubredditPostsByQuery(
+        @Path("subreddit") subreddit: String,
+        @Query("q") query: String,
+        @Query("after") after: String? = null,
+        @Query("sort") sort: String = "relevance",
+        @Query("t") time: String? = null,
+        @Query("type") type: String = "link",
+        @Query("limit") limit: Int = 25,
+        @Query("restrict_sr") restrictSr: Boolean = false,
     ): DataCollection<Listing<DataCollection<Link>>>
 }

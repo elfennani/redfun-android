@@ -2,13 +2,19 @@ package com.elfen.redfun.data.mappers
 
 import android.util.DisplayMetrics
 import android.util.Patterns
+import com.elfen.redfun.data.local.models.FeedPostEntity
+import com.elfen.redfun.data.local.models.PostEntity
+import com.elfen.redfun.data.local.models.PostMediaEntity
 import com.elfen.redfun.data.local.relations.FeedWithPost
 import com.elfen.redfun.data.local.relations.PostWithMedia
 import com.elfen.redfun.data.remote.models.Link
+import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.MediaImage
 import com.elfen.redfun.domain.model.MediaVideo
 import com.elfen.redfun.domain.model.Post
+import com.elfen.redfun.domain.model.name
 import kotlin.text.ifEmpty
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -47,10 +53,63 @@ fun PostWithMedia.asDomainModel() = Post(
             fallback = it.fallback
         )
     },
-    subredditIcon = post.subredditIcon
+    subredditIcon = post.subredditIcon,
+    flair = post.flair
 )
 
 fun FeedWithPost.asDomainModel() = PostWithMedia(post = post, media = media).asDomainModel()
+
+@OptIn(ExperimentalTime::class)
+fun Post.asEntity() = PostEntity(
+    id = id,
+    body = body,
+    subreddit = subreddit,
+    score = score,
+    numComments = numComments,
+    author = author,
+    created = created.epochSeconds,
+    thumbnail = thumbnail,
+    url = url,
+    title = title,
+    nsfw = nsfw,
+    link = link,
+    subredditIcon = subredditIcon,
+    flair = flair
+)
+
+fun MediaImage.asEntity(postId: String, index: Int) = PostMediaEntity(
+    id = id,
+    postId = postId,
+    source = source,
+    width = width,
+    height = height,
+    isVideo = false,
+    duration = null,
+    isGif = null,
+    fallback = null,
+    index = index
+)
+
+fun Post.asVideoEntity() = PostMediaEntity(
+    id = video!!.source,
+    postId = id,
+    source = video.source,
+    width = video.width,
+    height = video.height,
+    isVideo = true,
+    duration = video.duration,
+    isGif = video.isGif,
+    fallback = video.fallback
+)
+
+@OptIn(ExperimentalTime::class)
+fun Post.asFeedEntity(feed: Feed, cursor: String?, index: Int) = FeedPostEntity(
+    feed = feed.name(),
+    postId = id,
+    created = Clock.System.now().toEpochMilliseconds(),
+    cursor = cursor,
+    index = index,
+)
 
 @OptIn(ExperimentalTime::class)
 fun Link.asDomainModel(): Post {
@@ -163,5 +222,6 @@ fun Link.asDomainModel(): Post {
         images = images.ifEmpty { null },
         video = video,
         subredditIcon = subredditDetails.communityIcon?.ifEmpty { null } ?: subredditDetails.iconImg?.ifEmpty { null },
+        flair = linkFlairText
     )
 }

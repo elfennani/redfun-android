@@ -54,6 +54,7 @@ import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.components.DisplayModeBottomSheet
 import com.elfen.redfun.presentation.components.SortingBottomSheet
+import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.search.SearchRoute
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -137,6 +138,14 @@ private fun FeedScreen(
                 onSelectDisplayMode = { mode -> onEvent(FeedEvent.ChangeDisplayMode(mode)) },
                 onNavBarShownChange = { onEvent(FeedEvent.ToggleNavBar) },
                 navBarShown = state.isNavBarShown,
+                navigateFlair = { subreddit, flair ->
+                    navController.navigate(
+                        FlairRoute(
+                            subreddit = subreddit,
+                            flair = flair
+                        )
+                    )
+                }
             )
         }
     }

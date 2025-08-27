@@ -1,5 +1,6 @@
 package com.elfen.redfun.data.local.models
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -19,4 +20,6 @@ data class PostEntity(
     val title: String,
     val nsfw: Boolean,
     val link: String?,
+    @ColumnInfo(defaultValue = "NULL")
+    val flair: String? = null,
 )

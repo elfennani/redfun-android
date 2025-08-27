@@ -57,6 +57,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.presentation.components.PostList
+import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.search.components.ProfileSearchItem
 import com.elfen.redfun.presentation.screens.search.components.SubredditSearchItem
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
@@ -305,6 +306,14 @@ private fun SearchScreen(
                 sorting = state.sorting,
                 onSelectSorting = { sorting -> onEvent(SearchEvent.ChangeSorting(sorting)) },
                 onSelectDisplayMode = { mode -> onEvent(SearchEvent.ChangeDisplayMode(mode)) },
+                navigateFlair = { subreddit, flair ->
+                    navController.navigate(
+                        FlairRoute(
+                            subreddit = subreddit,
+                            flair = flair
+                        )
+                    )
+                }
             )
         }
     }

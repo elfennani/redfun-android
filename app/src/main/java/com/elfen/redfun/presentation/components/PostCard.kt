@@ -70,7 +70,8 @@ fun PostCard(
     post: Post,
     showSubreddit: Boolean = true,
     truncate: Boolean = true,
-    onClickSubreddit: () -> Unit,
+    navigateSubreddit: () -> Unit,
+    navigateToFlair: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val shape = RoundedCornerShape(12.dp)
@@ -86,7 +87,7 @@ fun PostCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable { onClickSubreddit() }
+                .clickable { navigateSubreddit() }
         ) {
             AsyncImage(
                 model = post.subredditIcon,
@@ -127,6 +128,13 @@ fun PostCard(
             maxLines = if (truncate) 2 else Int.MAX_VALUE,
             style = MaterialTheme.typography.titleMedium,
         )
+        if(post.nsfw || post.flair != null){
+            PostFlairs(
+                isNSFW = post.nsfw,
+                flair = post.flair,
+                navigateFlair = navigateToFlair
+            )
+        }
         if (!post.body.isNullOrEmpty()) {
             if (truncate)
                 Text(

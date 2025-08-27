@@ -19,5 +19,6 @@ data class Post(
     val nsfw: Boolean,
     val link: String?,
     val images: List<MediaImage>?,
-    val video: MediaVideo?
+    val video: MediaVideo?,
+    val flair: String?,
 )

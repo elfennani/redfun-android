@@ -14,6 +14,9 @@ import com.elfen.redfun.data.local.models.PostEntity
 import com.elfen.redfun.data.local.models.PostMediaEntity
 import com.elfen.redfun.data.local.relations.FeedWithPost
 import com.elfen.redfun.data.mappers.asDomainModel
+import com.elfen.redfun.data.mappers.asEntity
+import com.elfen.redfun.data.mappers.asFeedEntity
+import com.elfen.redfun.data.mappers.asVideoEntity
 import com.elfen.redfun.data.remote.AuthAPIService
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.getTimeParameter
@@ -79,14 +82,25 @@ class FeedMediator(
                     feed.sorting.getTimeParameter()
                 )
 
-                is Feed.Search -> apiService.getPostsByQuery(
-                    feed.query,
-                    loadKey,
-                    feed.sorting.feed,
-                    feed.sorting.getTimeParameter()
-                )
+                is Feed.Search -> {
+                    if (feed.subreddit != null)
+                        apiService.getSubredditPostsByQuery(
+                            feed.subreddit,
+                            feed.query,
+                            loadKey,
+                            feed.sorting.feed,
+                            feed.sorting.getTimeParameter(),
+                            restrictSr = true
+                        )
+                    else apiService.getPostsByQuery(
+                        feed.query,
+                        loadKey,
+                        feed.sorting.feed,
+                        feed.sorting.getTimeParameter()
+                    )
+                }
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Log.e(TAG, "Error loading feed: ${e.message}", e)
             return MediatorResult.Error(e)
         }
@@ -99,63 +113,22 @@ class FeedMediator(
 
             val posts = response.data.children.map { it.data.asDomainModel() }
             database.postDao().insertPost(posts.map { post ->
-                PostEntity(
-                    id = post.id,
-                    body = post.body,
-                    subreddit = post.subreddit,
-                    score = post.score,
-                    numComments = post.numComments,
-                    author = post.author,
-                    created = post.created.epochSeconds,
-                    thumbnail = post.thumbnail,
-                    url = post.url,
-                    title = post.title,
-                    nsfw = post.nsfw,
-                    link = post.link,
-                    subredditIcon = post.subredditIcon
-                )
+                post.asEntity()
             })
-            val media = posts.filter { (it.images?.size ?: 0) > 0 }.flatMapIndexed { index,post ->
+            val media = posts.filter { (it.images?.size ?: 0) > 0 }.flatMapIndexed { index, post ->
                 post.images!!.map { image ->
-                    PostMediaEntity(
-                        id = image.id,
-                        postId = post.id,
-                        source = image.source,
-                        width = image.width,
-                        height = image.height,
-                        isVideo = false,
-                        duration = null,
-                        isGif = null,
-                        fallback = null,
-                        index = index
-                    )
+                    image.asEntity(post.id, index)
                 }
             }
 
             val videos = posts.filter { it.video != null }.map {
-                PostMediaEntity(
-                    id = it.video!!.source,
-                    postId = it.id,
-                    source = it.video.source,
-                    width = it.video.width,
-                    height = it.video.height,
-                    isVideo = true,
-                    duration = it.video.duration,
-                    isGif = it.video.isGif,
-                    fallback = it.video.fallback
-                )
+                it.asVideoEntity()
             }
 
             database.postDao().insertMedia(videos)
             database.postDao().insertMedia(media)
-            database.postDao().insertFeedPost(posts.mapIndexed { index,post ->
-                FeedPostEntity(
-                    feed = feed.name(),
-                    postId = post.id,
-                    created = Clock.System.now().toEpochMilliseconds(),
-                    cursor = response.data.after,
-                    index = index,
-                )
+            database.postDao().insertFeedPost(posts.mapIndexed { index, post ->
+                post.asFeedEntity(feed, response.data.after, index)
             })
         }
 

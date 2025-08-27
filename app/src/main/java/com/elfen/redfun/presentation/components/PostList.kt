@@ -49,7 +49,6 @@ import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.domain.model.ResourceError
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.presentation.screens.details.PostDetailRoute
-import com.elfen.redfun.presentation.screens.details.PostDetailScreen
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.utils.plus
 import kotlinx.coroutines.flow.mapNotNull
@@ -68,6 +67,40 @@ fun PostList(
     onNavBarShownChange: (Boolean) -> Unit = {},
     lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     showSubreddit: Boolean = true,
+    navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
+){
+    PostList(
+        modifier = modifier,
+        posts = posts,
+        navigateToPost = { navController.navigate(PostDetailRoute(it.id)) },
+        navigateToSubreddit = { navController.navigate(SubredditRoute(it)) },
+        displayMode = displayMode,
+        sorting = sorting,
+        navBarShown = navBarShown,
+        onSelectSorting = onSelectSorting,
+        onSelectDisplayMode = onSelectDisplayMode,
+        onNavBarShownChange = onNavBarShownChange,
+        lazyStaggeredGridState = lazyStaggeredGridState,
+        showSubreddit = showSubreddit,
+        navigateFlair = navigateFlair
+    )
+}
+
+@Composable
+fun PostList(
+    modifier: Modifier = Modifier,
+    posts: LazyPagingItems<Post>,
+    navigateToPost: (Post) -> Unit = {},
+    navigateToSubreddit: (String) -> Unit = {},
+    displayMode: DisplayMode,
+    sorting: Sorting? = null,
+    navBarShown: Boolean? = null,
+    onSelectSorting: (Sorting) -> Unit = {},
+    onSelectDisplayMode: (DisplayMode) -> Unit = {},
+    onNavBarShownChange: (Boolean) -> Unit = {},
+    lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+    showSubreddit: Boolean = true,
+    navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
 ) {
     val scope = rememberCoroutineScope()
     val innerPadding = PaddingValues(0.dp)
@@ -94,17 +127,20 @@ fun PostList(
                         post = post,
                         showSubreddit = showSubreddit,
                         onPostClick = {
-                            navController.navigate(PostDetailRoute(post.id))
+                            navigateToPost(post)
                         },
                         onClickSubreddit = {
-                            navController.navigate(SubredditRoute(post.subreddit))
+                            navigateToSubreddit(post.subreddit)
                         },
                         shouldMute = shouldMute,
                         onNavBarShownChange = onNavBarShownChange,
                         navBarShown = navBarShown,
                         sorting = sorting,
                         onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode
+                        onSelectDisplayMode = onSelectDisplayMode,
+                        navigateFlair = {
+                            navigateFlair(post.subreddit, it)
+                        }
                     )
                     val isLastPost = page == posts.itemCount - 1
                     if (isLastPost && posts.loadState.append is LoadState.NotLoading) {
@@ -160,13 +196,16 @@ fun PostList(
                         PostCard(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .clickable { navController.navigate(PostDetailRoute(post.id)) }
+                                .clickable { navigateToPost(post) }
                                 .padding(16.dp),
                             post = post,
-                            onClickSubreddit = {
-                                navController.navigate(SubredditRoute(post.subreddit))
+                            navigateSubreddit = {
+                                navigateToSubreddit(post.subreddit)
                             },
-                            showSubreddit = showSubreddit
+                            showSubreddit = showSubreddit,
+                            navigateToFlair = {
+                                navigateFlair(post.subreddit, it)
+                            }
                         )
                     }
                 }
@@ -273,12 +312,13 @@ fun PostList(
                                 .clip(RoundedCornerShape(12.dp)),
                             post = post,
                             onClickSubreddit = {
-                                navController.navigate(SubredditRoute(post.subreddit))
+                                navigateToSubreddit(post.subreddit)
                             },
                             onClickPost = {
-                                navController.navigate(PostDetailRoute(post.id))
+                                navigateToPost(post)
                             },
-                            showSubreddit = showSubreddit
+                            showSubreddit = showSubreddit,
+                            navigateToFlair = navigateFlair
                         )
                     }
                 }

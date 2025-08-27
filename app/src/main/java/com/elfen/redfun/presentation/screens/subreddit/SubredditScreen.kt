@@ -49,6 +49,7 @@ import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.components.SortingBottomSheet
+import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import java.util.Locale
 
 @Composable
@@ -117,7 +118,15 @@ fun SubredditScreen(
                     onSelectDisplayMode = { mode -> onEvent(SubredditEvent.ChangeDisplayMode(mode)) },
                     onSelectSorting = { sort -> onEvent(SubredditEvent.ChangeSorting(sort)) },
                     navBarShown = state.isNavBarShown,
-                    onNavBarShownChange = { onEvent(SubredditEvent.ToggleNavBar) }
+                    onNavBarShownChange = { onEvent(SubredditEvent.ToggleNavBar) },
+                    navigateFlair = { subreddit, flair ->
+                        navController.navigate(
+                            FlairRoute(
+                                subreddit = subreddit,
+                                flair = flair
+                            )
+                        )
+                    }
                 )
             }
         }

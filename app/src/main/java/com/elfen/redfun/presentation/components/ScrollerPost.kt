@@ -85,6 +85,7 @@ fun ScrollerPost(
     onSelectDisplayMode: (DisplayMode) -> Unit = {},
     onNavBarShownChange: (Boolean) -> Unit = {},
     shouldMute: Boolean = true,
+    navigateFlair: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -238,6 +239,15 @@ fun ScrollerPost(
                     color = Color.White,
                 )
 
+                if (post.flair != null || post.nsfw) {
+                    PostFlairs(
+                        isNSFW = post.nsfw,
+                        flair = post.flair,
+                        navigateFlair = navigateFlair,
+                        modifier = Modifier,
+                    )
+                }
+
                 if (timelineState.duration > 0L) {
                     val rawPercentage by remember {
                         derivedStateOf {
@@ -334,7 +344,8 @@ fun ScrollerPostPreview() {
         nsfw = false,
         link = null,
         images = null,
-        video = null
+        video = null,
+        flair = "Discussion"
     )
     ScrollerPost(post = samplePost, onPostClick = {})
 }

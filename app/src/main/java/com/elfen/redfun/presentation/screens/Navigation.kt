@@ -57,6 +57,8 @@ import com.elfen.redfun.presentation.screens.login.LoginRoute
 import com.elfen.redfun.presentation.screens.login.LoginScreen
 import com.elfen.redfun.presentation.screens.details.PostDetailRoute
 import com.elfen.redfun.presentation.screens.details.PostDetailScreen
+import com.elfen.redfun.presentation.screens.flair.FlairRoute
+import com.elfen.redfun.presentation.screens.flair.FlairScreen
 import com.elfen.redfun.presentation.screens.profile.ProfileRoute
 import com.elfen.redfun.presentation.screens.profile.ProfileScreen
 import com.elfen.redfun.presentation.screens.saved.SavedRoute
@@ -224,6 +226,10 @@ fun Navigation() {
             }
             composable<SearchRoute> {
                 SearchScreen(navController)
+            }
+
+            composable<FlairRoute> {
+                FlairScreen(navController)
             }
         }
     }
