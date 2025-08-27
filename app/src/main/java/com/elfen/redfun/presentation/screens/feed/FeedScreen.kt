@@ -77,10 +77,7 @@ private fun FeedScreen(
     onEvent: (FeedEvent) -> Unit,
     navController: NavController,
 ) {
-    val scope = rememberCoroutineScope()
     val posts = state.posts?.collectAsLazyPagingItems()
-    var sortingSheet by remember { mutableStateOf(false) }
-    var viewModeSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -96,9 +93,15 @@ private fun FeedScreen(
                     }
                 )
         },
-        contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
-            WindowInsetsSides.Top
-        ) else WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = state.let {
+            if (it.isNavBarShown && it.displayMode != DisplayMode.SCROLLER) {
+                ScaffoldDefaults.contentWindowInsets.only(
+                    WindowInsetsSides.Top
+                )
+            } else {
+                WindowInsets(0.dp)
+            }
+        }
     ) { innerPadding ->
 
         if (state.isLoading || posts == null) {
@@ -112,20 +115,7 @@ private fun FeedScreen(
                 CircularProgressIndicator()
             }
         } else {
-            if (viewModeSheet) {
-                DisplayModeBottomSheet(
-                    onDismissRequest = { viewModeSheet = false },
-                    current = state.displayMode,
-                    onSelectDisplayMode = { mode -> onEvent(FeedEvent.ChangeDisplayMode(mode)) }
-                )
-            }
-            if (sortingSheet) {
-                SortingBottomSheet(
-                    onDismissRequest = { sortingSheet = false },
-                    onSelectSorting = { onEvent(FeedEvent.ChangeSorting(it)) },
-                    sorting = state.sorting,
-                )
-            }
+
 
             PostList(
                 modifier = Modifier.padding(innerPadding),
