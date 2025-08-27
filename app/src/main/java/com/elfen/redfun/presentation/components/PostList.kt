@@ -147,8 +147,10 @@ fun PostList(
                             .padding(horizontal = 16.dp),
                         displayMode = displayMode,
                         sorting = sorting,
+                        navBarShown = navBarShown,
                         onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode
+                        onSelectDisplayMode = onSelectDisplayMode,
+                        onToggleNavBar = { onNavBarShownChange(!(navBarShown ?: true)) }
                     )
                 }
 
@@ -242,8 +244,10 @@ fun PostList(
                             .padding(horizontal = 2.dp),
                         displayMode = displayMode,
                         sorting = sorting,
+                        navBarShown = navBarShown,
                         onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode
+                        onSelectDisplayMode = onSelectDisplayMode,
+                        onToggleNavBar = { onNavBarShownChange(!(navBarShown ?: true)) }
                     )
                 }
 

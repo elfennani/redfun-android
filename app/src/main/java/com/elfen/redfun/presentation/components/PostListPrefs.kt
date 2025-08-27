@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,8 +45,10 @@ fun PostListPrefs(
     modifier: Modifier = Modifier,
     displayMode: DisplayMode,
     sorting: Sorting? = null,
+    navBarShown: Boolean? = null,
     onSelectSorting: (Sorting) -> Unit = {},
-    onSelectDisplayMode: (DisplayMode) -> Unit = {}
+    onSelectDisplayMode: (DisplayMode) -> Unit = {},
+    onToggleNavBar: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     var sortingSheet by remember { mutableStateOf(false) }
@@ -65,10 +71,10 @@ fun PostListPrefs(
 
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if(sorting != null) {
+        if (sorting != null) {
             FilledTonalButton(
                 onClick = { sortingSheet = true },
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
@@ -79,6 +85,15 @@ fun PostListPrefs(
             }
         }
         Spacer(Modifier.weight(1f))
+        if (navBarShown != null) {
+            FilledTonalIconButton(onClick = { onToggleNavBar() }) {
+                Icon(
+                    if (navBarShown) Icons.Default.ArrowDropDown
+                    else Icons.Default.ArrowDropUp,
+                    contentDescription = null,
+                )
+            }
+        }
         FilledTonalButton(onClick = { viewModeSheet = true }) {
             Icon(painterResource(displayMode.icon()), null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
