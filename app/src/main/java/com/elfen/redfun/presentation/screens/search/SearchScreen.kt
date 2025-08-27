@@ -21,9 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,11 +44,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.search.components.ProfileSearchItem
 import com.elfen.redfun.presentation.screens.search.components.SubredditSearchItem
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
@@ -61,6 +69,7 @@ fun SearchScreen(navController: NavHostController) {
 
     SearchScreen(
         state = state,
+        navController = navController,
         onEvent = viewModel::onEvent,
         onNavigate = navController::navigate,
         onBack = { navController.popBackStack() }
@@ -70,12 +79,14 @@ fun SearchScreen(navController: NavHostController) {
 @Composable
 private fun SearchScreen(
     state: SearchUiState = SearchUiState(),
+    navController: NavHostController,
     onEvent: (SearchEvent) -> Unit = {},
     onNavigate: (Any) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -112,6 +123,16 @@ private fun SearchScreen(
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface
                         ),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                focusManager.clearFocus()
+                                onEvent(SearchEvent.Search(state.query))
+                            }
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            imeAction = ImeAction.Search
+                        ),
                         decorationBox = {
                             Box(contentAlignment = Alignment.CenterStart) {
                                 if (state.query.isEmpty()) {
@@ -129,105 +150,128 @@ private fun SearchScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues + PaddingValues(vertical = 16.dp, horizontal = 8.dp) + WindowInsets.ime.asPaddingValues(),
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            if (state.autoCompleteResult != null) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Communities", style = MaterialTheme.typography.titleMedium)
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .alpha(if (state.isLoading) 1f else 0f),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                }
-                if (state.autoCompleteResult.subreddits.isEmpty()) {
+        if (isFocused) {
+            LazyColumn(
+                contentPadding = paddingValues + PaddingValues(
+                    vertical = 16.dp,
+                    horizontal = 8.dp
+                ) + WindowInsets.ime.asPaddingValues(),
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (state.autoCompleteResult != null) {
                     item {
-                        Text(
-                            "No communities found",
-                            modifier = Modifier.padding(top = 8.dp).padding(horizontal = 8.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                items(state.autoCompleteResult.subreddits) {
-                    SubredditSearchItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable{ onNavigate(SubredditRoute(it.name)) }
-                            .padding(8.dp),
-                        subreddit = it
-                    )
-                }
-
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp).padding(horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "Users",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        CircularProgressIndicator(
+                        Row(
                             modifier = Modifier
-                                .size(16.dp)
-                                .alpha(if (state.isLoading) 1f else 0f),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Communities", style = MaterialTheme.typography.titleMedium)
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .alpha(if (state.isLoading) 1f else 0f),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+
+                    }
+                    if (state.autoCompleteResult.subreddits.isEmpty()) {
+                        item {
+                            Text(
+                                "No communities found",
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .padding(horizontal = 8.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    items(state.autoCompleteResult.subreddits) {
+                        SubredditSearchItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onNavigate(SubredditRoute(it.name)) }
+                                .padding(8.dp),
+                            subreddit = it
                         )
                     }
 
-                }
-
-                if (state.autoCompleteResult.users.isEmpty()) {
                     item {
-                        Text(
-                            "No users found",
-                            modifier = Modifier.padding(top = 8.dp).padding(horizontal = 8.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                                .padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Users",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .alpha(if (state.isLoading) 1f else 0f),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+
+                    }
+
+                    if (state.autoCompleteResult.users.isEmpty()) {
+                        item {
+                            Text(
+                                "No users found",
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .padding(horizontal = 8.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    items(state.autoCompleteResult.users) {
+                        ProfileSearchItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {}
+                                .padding(8.dp),
+                            profile = it
                         )
                     }
-                }
-
-                items(state.autoCompleteResult.users) {
-                    ProfileSearchItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable{}
-                            .padding(8.dp),
-                        profile = it
-                    )
-                }
-            } else if (state.isLoading) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                } else if (state.isLoading) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
             }
+        } else {
+            val posts = state.posts.collectAsLazyPagingItems()
+            PostList(
+                posts = posts,
+                navController = navController,
+                displayMode = state.displayMode,
+                modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
+                sorting = state.sorting,
+                onSelectSorting = { sorting -> onEvent(SearchEvent.ChangeSorting(sorting)) },
+                onSelectDisplayMode = { mode -> onEvent(SearchEvent.ChangeDisplayMode(mode)) },
+            )
         }
     }
 }
@@ -236,6 +280,8 @@ private fun SearchScreen(
 @Composable
 private fun SearchScreenPreview() {
     AppTheme {
-        SearchScreen()
+        SearchScreen(
+            navController = rememberNavController()
+        )
     }
 }

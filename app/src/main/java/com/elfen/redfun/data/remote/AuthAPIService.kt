@@ -46,4 +46,14 @@ interface AuthAPIService {
         @Query("q") query: String,
         @Query("limit") limit: Int = 5
     ): DataCollection<Listing<DataCollection<RemoteProfile>>>
+
+    @GET("/search?sr_detail=1&raw_json=1")
+    suspend fun getPostsByQuery(
+        @Query("q") query: String,
+        @Query("after") after: String? = null,
+        @Query("sort") sort: String = "relevance",
+        @Query("t") time: String? = null,
+        @Query("type") type: String = "link",
+        @Query("limit") limit: Int = 25
+    ): DataCollection<Listing<DataCollection<Link>>>
 }

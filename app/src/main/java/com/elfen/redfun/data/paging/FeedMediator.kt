@@ -78,6 +78,13 @@ class FeedMediator(
                     loadKey,
                     feed.sorting.getTimeParameter()
                 )
+
+                is Feed.Search -> apiService.getPostsByQuery(
+                    feed.query,
+                    loadKey,
+                    feed.sorting.feed,
+                    feed.sorting.getTimeParameter()
+                )
             }
         } catch (e: Exception){
             Log.e(TAG, "Error loading feed: ${e.message}", e)
