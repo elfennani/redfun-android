@@ -1,5 +1,6 @@
 package com.elfen.redfun.data.local.models
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -14,5 +15,8 @@ data class PostMediaEntity(
     val isVideo: Boolean?,
     val duration: Int?,
     val isGif: Boolean? ,
-    val fallback: String?
+    val fallback: String?,
+
+    @ColumnInfo(defaultValue = "0")
+    val index: Int = 0
 )

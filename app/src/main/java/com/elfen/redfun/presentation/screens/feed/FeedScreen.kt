@@ -85,7 +85,7 @@ private fun FeedScreen(
         },
         contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
             WindowInsetsSides.Top
-        ) else WindowInsets(0.dp)
+        ) else WindowInsets(0,0,0,0)
     ) { innerPadding ->
 
         if (state.isLoading || posts == null) {

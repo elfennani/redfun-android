@@ -108,7 +108,7 @@ class FeedMediator(
                     subredditIcon = post.subredditIcon
                 )
             })
-            val media = posts.filter { (it.images?.size ?: 0) > 0 }.flatMap { post ->
+            val media = posts.filter { (it.images?.size ?: 0) > 0 }.flatMapIndexed { index,post ->
                 post.images!!.map { image ->
                     PostMediaEntity(
                         id = image.id,
@@ -120,6 +120,7 @@ class FeedMediator(
                         duration = null,
                         isGif = null,
                         fallback = null,
+                        index = index
                     )
                 }
             }

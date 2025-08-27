@@ -26,7 +26,7 @@ fun PostWithMedia.asDomainModel() = Post(
     title = post.title,
     nsfw = post.nsfw,
     link = post.link,
-    images = media.filter { it.isVideo == false || it.isVideo == null }.map {
+    images = media.sortedBy { it.index }.filter { it.isVideo == false || it.isVideo == null }.map {
         MediaImage(
             id = it.id,
             source = it.source,
