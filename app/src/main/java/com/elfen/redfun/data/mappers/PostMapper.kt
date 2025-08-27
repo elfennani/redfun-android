@@ -126,8 +126,9 @@ fun Link.asDomainModel(): Post {
         )
     }
 
-    if (mediaMetadata != null && (preview?.enabled === null || preview.enabled)) {
-        images = mediaMetadata.values.mapNotNull { media ->
+    if (mediaMetadata != null && galleryData != null && (preview?.enabled === null || preview.enabled)) {
+        images = galleryData.items.sortedBy { it.id }.mapNotNull { galleryItem ->
+            val media = mediaMetadata[galleryItem.mediaId] ?: return@mapNotNull null
             if (media.hlsUrl !== null || media.s == null) return@mapNotNull null
 
             MediaImage(
