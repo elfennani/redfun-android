@@ -9,8 +9,10 @@ import com.elfen.redfun.domain.usecase.GetAutoCompleteResultsUseCase
 import com.elfen.redfun.domain.usecase.GetDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.GetFeedPagingUseCase
 import com.elfen.redfun.domain.usecase.GetFeedSortingUseCase
+import com.elfen.redfun.domain.usecase.GetNavBarShownUseCase
 import com.elfen.redfun.domain.usecase.UpdateDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.UpdateFeedSortingUseCase
+import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,16 +33,19 @@ class SearchViewModel @Inject constructor(
     private val getFeedPagingUseCase: GetFeedPagingUseCase,
     private val updateFeedSorting: UpdateFeedSortingUseCase,
     private val updateDisplayMode: UpdateDisplayModeUseCase,
+    private val updateNavBarShown: UpdateNavBarShownUseCase,
     getSorting: GetFeedSortingUseCase,
     getDisplayMode: GetDisplayModeUseCase,
+    getNavBarShown: GetNavBarShownUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchUiState())
     private val sorting = getSorting(Feed.Search("searching", Sorting.Best))
     val displayMode = getDisplayMode("search")
-    val state = combine(_state, sorting, displayMode) { state, sorting, displayMode ->
+    val state = combine(_state, sorting, displayMode, getNavBarShown()) { state, sorting, displayMode, navBarShown ->
         state.copy(
             sorting = sorting,
             displayMode = displayMode,
+            isNavBarShown = navBarShown,
             posts = if (state.searchedQuery.isNotEmpty()) getFeedPagingUseCase(
                 Feed.Search(
                     query = state.searchedQuery,
@@ -92,6 +97,13 @@ class SearchViewModel @Inject constructor(
 
             is SearchEvent.ChangeDisplayMode -> viewModelScope.launch {
                 updateDisplayMode(event.displayMode)
+            }
+
+            is SearchEvent.ToggleNavBar -> {
+                viewModelScope.launch {
+                    val currentState = state.value.isNavBarShown
+                    updateNavBarShown(!currentState)
+                }
             }
 
             is SearchEvent.SelectSubreddit -> {

@@ -17,5 +17,6 @@ data class SearchUiState(
     val posts: Flow<PagingData<Post>> = flow { PagingData.empty<Post>() },
     val sorting: Sorting? = null,
     val displayMode: DisplayMode = SettingsRepositoryImpl.DefaultDisplayMode,
+    val isNavBarShown: Boolean = true,
     val selectedSubreddit: String? = null,
 )

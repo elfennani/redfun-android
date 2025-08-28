@@ -123,7 +123,7 @@ fun PostList(
             if (post != null) {
                 Box {
                     ScrollerPost(
-                        modifier = modifier,
+                        modifier = Modifier,
                         post = post,
                         showSubreddit = showSubreddit,
                         onPostClick = {
