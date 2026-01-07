@@ -11,14 +11,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -27,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -48,6 +54,9 @@ import com.elfen.redfun.ANIM_DURATION_MILLIS
 import com.elfen.redfun.R
 import com.elfen.redfun.data.SettingsRepositoryImpl
 import com.elfen.redfun.data.local.dataStore
+import com.elfen.redfun.presentation.components.ui.AppNavigationBar
+import com.elfen.redfun.presentation.components.ui.AppNavigationBarIconAction
+import com.elfen.redfun.presentation.components.ui.AppNavigationBarTab
 import com.elfen.redfun.presentation.screens.auth.AuthRoute
 import com.elfen.redfun.presentation.screens.auth.AuthScreen
 import com.elfen.redfun.presentation.screens.feed.FeedRoute
@@ -71,6 +80,7 @@ import com.elfen.redfun.presentation.screens.settings.SettingsRoute
 import com.elfen.redfun.presentation.screens.settings.SettingsScreen
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.screens.subreddit.SubredditScreen
+import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
@@ -78,7 +88,6 @@ import kotlin.math.roundToInt
 
 enum class Destination(val label: String, val route: Any, @DrawableRes val icon: Int) {
     HOME("Home", FeedRoute, R.drawable.outline_home_24),
-    SEARCH("Search", SearchRoute, R.drawable.outline_search_24),
     SAVED("Saved", SavedRoute, R.drawable.outline_bookmarks_24),
     PROFILE("Profile", ProfileRoute, R.drawable.outline_person_24)
 }
@@ -111,21 +120,27 @@ fun Navigation() {
 
     Scaffold(
         bottomBar = {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentDestination = navBackStackEntry?.destination
+
+            val shouldHideNavBar =
+                Destination.entries.none { navController.currentDestination?.hasRoute(it.route::class) == true }
+
             AnimatedVisibility(
-                visible = navBarShown,
+                visible = navBarShown && !shouldHideNavBar,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                NavigationBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp + WindowInsets.navigationBars.asPaddingValues(density).calculateBottomPadding())
+                AppNavigationBar(
+                    action = {
+                        AppNavigationBarIconAction(onClick = {
+                            navController.navigate(SearchRoute)
+                        }) {
+                            Icon(Icons.Outlined.Search, "Search")
+                        }
+                    }
                 ) {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
-
                     Destination.entries.forEach { destination ->
-                        NavigationBarItem(
-                            alwaysShowLabel = false,
+                        AppNavigationBarTab(
                             icon = {
                                 Icon(painterResource(destination.icon), destination.label)
                             },
@@ -150,86 +165,89 @@ fun Navigation() {
             WindowInsetsSides.Bottom
         )
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = if (session == null) LoginRoute else FeedRoute,
-            modifier = Modifier.padding(innerPadding),
-            enterTransition = {
-                fadeIn() + slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(ANIM_DURATION_MILLIS),
-                ) + scaleIn(initialScale = 0.9f)
-            },
-            exitTransition = {
-                fadeOut(animationSpec = tween(ANIM_DURATION_MILLIS)) + scaleOut(
-                    targetScale = 0.75f
-                )
-            },
-            popEnterTransition = {
-                fadeIn(animationSpec = spec) + scaleIn(
-                    initialScale = 0.9f, animationSpec = spec
-                ) + slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    initialOffset = { (it * 0.15f).roundToInt() },
-                    animationSpec = specInt
-                )
-            },
-            popExitTransition = {
-                fadeOut(animationSpec = spec) + slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    targetOffset = { (it * 0.15f).roundToInt() },
-                    animationSpec = specInt
-                ) + scaleOut(
-                    targetScale = 0.85f, animationSpec = spec
-                )
-            },
+        CompositionLocalProvider(
+            LocalScaffoldPadding provides innerPadding
         ) {
-            composable<LoginRoute> {
-                LoginScreen(navController)
-            }
-            composable<FeedRoute> {
-                val viewModel = hiltViewModel<FeedViewModel>()
-
-                FeedScreen(navController, viewModel)
-            }
-            composable<SearchRoute> {
-                Text("Search Screen", modifier = Modifier.padding(16.dp))
-            }
-            composable<ProfileRoute> {
-                ProfileScreen(
-                    onNavigate = navController::navigate
-                )
-            }
-            composable<SessionRoute> {
-                SessionScreen(navController)
-            }
-            composable<PostDetailRoute> {
-                PostDetailScreen(navController)
-            }
-            composable<SavedRoute> {
-                SavedScreen(navController)
-            }
-            composable<SubredditRoute> {
-                SubredditScreen(navController = navController)
-            }
-            composable<AuthRoute>(
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern = "redfun://auth?code={code}"
-                        action = Intent.ACTION_VIEW
-                    })
+            NavHost(
+                navController = navController,
+                startDestination = if (session == null) LoginRoute else FeedRoute,
+                enterTransition = {
+                    fadeIn() + slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(ANIM_DURATION_MILLIS),
+                    ) + scaleIn(initialScale = 0.9f)
+                },
+                exitTransition = {
+                    fadeOut(animationSpec = tween(ANIM_DURATION_MILLIS)) + scaleOut(
+                        targetScale = 0.75f
+                    )
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = spec) + scaleIn(
+                        initialScale = 0.9f, animationSpec = spec
+                    ) + slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        initialOffset = { (it * 0.15f).roundToInt() },
+                        animationSpec = specInt
+                    )
+                },
+                popExitTransition = {
+                    fadeOut(animationSpec = spec) + slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        targetOffset = { (it * 0.15f).roundToInt() },
+                        animationSpec = specInt
+                    ) + scaleOut(
+                        targetScale = 0.85f, animationSpec = spec
+                    )
+                },
             ) {
-                AuthScreen(navController)
-            }
-            composable<SettingsRoute> {
-                SettingsScreen(navController)
-            }
-            composable<SearchRoute> {
-                SearchScreen(navController)
-            }
+                composable<LoginRoute> {
+                    LoginScreen(navController)
+                }
+                composable<FeedRoute> {
+                    val viewModel = hiltViewModel<FeedViewModel>()
 
-            composable<FlairRoute> {
-                FlairScreen(navController)
+                    FeedScreen(navController, viewModel)
+                }
+                composable<SearchRoute> {
+                    Text("Search Screen", modifier = Modifier.padding(16.dp))
+                }
+                composable<ProfileRoute> {
+                    ProfileScreen(
+                        onNavigate = navController::navigate
+                    )
+                }
+                composable<SessionRoute> {
+                    SessionScreen(navController)
+                }
+                composable<PostDetailRoute> {
+                    PostDetailScreen(navController)
+                }
+                composable<SavedRoute> {
+                    SavedScreen(navController)
+                }
+                composable<SubredditRoute> {
+                    SubredditScreen(navController = navController)
+                }
+                composable<AuthRoute>(
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "redfun://auth?code={code}"
+                            action = Intent.ACTION_VIEW
+                        })
+                ) {
+                    AuthScreen(navController)
+                }
+                composable<SettingsRoute> {
+                    SettingsScreen(navController)
+                }
+                composable<SearchRoute> {
+                    SearchScreen(navController)
+                }
+
+                composable<FlairRoute> {
+                    FlairScreen(navController)
+                }
             }
         }
     }

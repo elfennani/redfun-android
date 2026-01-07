@@ -5,17 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.elfen.redfun.domain.repository.FeedRepository
+import com.elfen.redfun.domain.usecase.DownloadPostUseCase
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import okhttp3.Dispatcher
 import javax.inject.Inject
 
 @HiltViewModel
 class PostDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val feedRepositoryImpl: FeedRepository
+    private val feedRepositoryImpl: FeedRepository,
+    private val downloadPostUseCase: DownloadPostUseCase
 ) : ViewModel() {
     private val id = savedStateHandle.toRoute<PostDetailRoute>().id
 
@@ -30,4 +35,10 @@ class PostDetailViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         PostDetailUiState(null, null, true)
     )
+
+    fun downloadPost() {
+        viewModelScope.launch(Dispatchers.IO) {
+            downloadPostUseCase(id)
+        }
+    }
 }

@@ -40,6 +40,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            resValue("string", "app_name", "RedFun (Debug)")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

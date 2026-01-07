@@ -3,6 +3,7 @@ package com.elfen.redfun.presentation.screens.saved
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +26,9 @@ import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import com.elfen.redfun.presentation.components.ui.AppTopBar
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
+import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
 
 @Composable
 fun SavedScreen(
@@ -49,38 +52,39 @@ fun SavedScreen(
     onEvent: (SavedEvent) -> Unit = { }
 ) {
     val posts = state.posts.collectAsLazyPagingItems()
+    val outerPadding = LocalScaffoldPadding.current
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            AppTopBar(
                 title = {
                     Text("Saved Posts")
                 },
             )
         },
-        contentWindowInsets = if (state.isNavBarShown) ScaffoldDefaults.contentWindowInsets.only(
-            WindowInsetsSides.Top
-        ) else WindowInsets(0.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(it)
-        ) {
-            PostList(
-                posts = posts,
-                navController = navController,
-                displayMode = state.displayMode,
-                navBarShown = state.isNavBarShown,
-                onNavBarShownChange = { onEvent(SavedEvent.ToggleNavBar) },
-                onSelectDisplayMode = { mode -> onEvent(SavedEvent.ChangeDisplayMode(mode)) },
-                navigateFlair = { subreddit, flair ->
-                    navController.navigate(
-                        FlairRoute(
-                            subreddit = subreddit,
-                            flair = flair
-                        )
-                    )
-                }
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.add(
+            WindowInsets(
+                top = outerPadding.calculateTopPadding(),
+                bottom = outerPadding.calculateBottomPadding()
             )
-        }
+        )
+    ) {
+        PostList(
+            posts = posts,
+            contentPadding = it,
+            navController = navController,
+            displayMode = state.displayMode,
+            navBarShown = state.isNavBarShown,
+            onNavBarShownChange = { onEvent(SavedEvent.ToggleNavBar) },
+            onSelectDisplayMode = { mode -> onEvent(SavedEvent.ChangeDisplayMode(mode)) },
+            navigateFlair = { subreddit, flair ->
+                navController.navigate(
+                    FlairRoute(
+                        subreddit = subreddit,
+                        flair = flair
+                    )
+                )
+            }
+        )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -62,7 +62,7 @@ import com.elfen.redfun.R
 import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Sorting
-import com.elfen.redfun.presentation.screens.feed.FeedEvent
+import com.elfen.redfun.presentation.components.ui.AppActionButton
 import com.elfen.redfun.presentation.utils.rememberPlayerTimelineState
 import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
@@ -86,6 +86,7 @@ fun ScrollerPost(
     onNavBarShownChange: (Boolean) -> Unit = {},
     shouldMute: Boolean = true,
     navigateFlair: (String) -> Unit = {},
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -138,7 +139,8 @@ fun ScrollerPost(
                         )
                     )
                 )
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
+                .padding(bottom = contentPadding.calculateBottomPadding()),
             verticalAlignment = Alignment.Bottom
         ) {
             Column(
@@ -149,7 +151,8 @@ fun ScrollerPost(
                     .clickable {
                         onPostClick()
                     }
-                    .padding(8.dp),
+                    .padding(8.dp)
+                ,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (timelineState.duration > 0L) {
@@ -287,7 +290,7 @@ fun ScrollerPost(
                 verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                FloatingActionButton(onClick = {
+                AppActionButton(onClick = {
                     viewModeSheet = true
                 }) {
                     Icon(
@@ -297,7 +300,7 @@ fun ScrollerPost(
                 }
 
                 if (sorting != null) {
-                    FloatingActionButton(
+                    AppActionButton(
                         onClick = {
                             sortingSheet = true
                         },
@@ -310,7 +313,7 @@ fun ScrollerPost(
                 }
 
                 if (navBarShown != null) {
-                    FloatingActionButton(
+                    AppActionButton(
                         onClick = { onNavBarShownChange(!navBarShown) },
                     ) {
                         Icon(
@@ -347,5 +350,5 @@ fun ScrollerPostPreview() {
         video = null,
         flair = "Discussion"
     )
-    ScrollerPost(post = samplePost, onPostClick = {})
+    ScrollerPost(post = samplePost, onPostClick = {},)
 }

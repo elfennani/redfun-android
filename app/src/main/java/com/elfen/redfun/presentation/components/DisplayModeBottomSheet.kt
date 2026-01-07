@@ -10,15 +10,11 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.rounded.ViewDay
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -27,12 +23,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.icon
+import com.elfen.redfun.presentation.components.ui.AppBottomSheet
 import com.elfen.redfun.presentation.theme.AppTheme
 import kotlinx.coroutines.launch
 
@@ -46,38 +42,12 @@ fun DisplayModeBottomSheet(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    ModalBottomSheet(
+    AppBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        shape = RectangleShape,
-        dragHandle = {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp, horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Display Mode".uppercase(),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                onDismissRequest()
-                            }
-                        }
-                    }) {
-                        Icon(Icons.Default.Clear, null)
-                    }
-                }
-                HorizontalDivider()
-            }
+        title = {
+            Icon(Icons.Rounded.ViewDay, null)
+            Text("Display Mode")
         }
     ) {
         DisplayModeView(
@@ -103,8 +73,7 @@ private fun DisplayModeView(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -129,10 +98,10 @@ private fun RowScope.DisplayModeItem(
     Column(
         modifier = Modifier
             .weight(1f)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(MaterialTheme.shapes.large)
             .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick(mode) }
-            .padding(horizontal = 8.dp, vertical = 32.dp)
+            .padding(horizontal = 8.dp, vertical = 24.dp)
             .fillMaxWidth()
             .align(Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -157,6 +126,20 @@ private fun RowScope.DisplayModeItem(
 private fun DisplayModeViewPreview() {
     AppTheme {
         DisplayModeView(
+            current = DisplayMode.SCROLLER,
+            onSelectDisplayMode = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview
+@Composable
+private fun DisplayModeSheetPreview(){
+    AppTheme {
+        DisplayModeBottomSheet(
+            onDismissRequest = {},
+            sheetState = rememberModalBottomSheetState(true),
             current = DisplayMode.SCROLLER,
             onSelectDisplayMode = {}
         )

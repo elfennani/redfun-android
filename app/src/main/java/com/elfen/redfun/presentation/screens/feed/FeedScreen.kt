@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,8 +56,11 @@ import com.elfen.redfun.domain.model.toLabel
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.components.DisplayModeBottomSheet
 import com.elfen.redfun.presentation.components.SortingBottomSheet
+import com.elfen.redfun.presentation.components.ui.AppTopBar
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.search.SearchRoute
+import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
+import com.elfen.redfun.presentation.utils.plus
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -78,20 +83,23 @@ private fun FeedScreen(
     navController: NavController,
 ) {
     val posts = state.posts?.collectAsLazyPagingItems()
+    val outerPadding = LocalScaffoldPadding.current;
 
     Scaffold(
         topBar = {
-            if (state.displayMode != DisplayMode.SCROLLER)
-                TopAppBar(
-                    title = { Text("Feed") },
-                    actions = {
-                        IconButton(onClick = {
-                            navController.navigate(SearchRoute)
-                        }) {
-                            Icon(Icons.Default.Search, null)
-                        }
-                    }
-                )
+            AppTopBar(
+                title = { Text("My Feed") },
+                containerColor =
+                    if (state.displayMode == DisplayMode.SCROLLER)
+                        Color.Black
+                    else
+                        MaterialTheme.colorScheme.background,
+                contentColor =
+                    if (state.displayMode == DisplayMode.SCROLLER)
+                        Color.White
+                    else
+                        MaterialTheme.colorScheme.onBackground
+            )
         },
         contentWindowInsets = state.let {
             if (it.isNavBarShown && it.displayMode != DisplayMode.SCROLLER) {
@@ -118,7 +126,8 @@ private fun FeedScreen(
 
 
             PostList(
-                modifier = Modifier.padding(innerPadding),
+//                modifier = Modifier.padding(innerPadding),
+                contentPadding = innerPadding + outerPadding,
                 posts = posts,
                 navController = navController,
                 displayMode = state.displayMode,

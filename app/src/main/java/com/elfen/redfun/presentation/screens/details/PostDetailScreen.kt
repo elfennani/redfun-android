@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -22,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,8 +47,11 @@ import com.elfen.redfun.R
 import com.elfen.redfun.domain.model.Comment
 import com.elfen.redfun.presentation.components.CommentCard
 import com.elfen.redfun.presentation.components.PostCard
+import com.elfen.redfun.presentation.components.ui.AppActionButton
+import com.elfen.redfun.presentation.components.ui.AppNavigationBarIconAction
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
+import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +66,7 @@ fun PostDetailScreen(
     val comments = state.value.comments ?: emptyList()
     val lazyListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val outerPadding = LocalScaffoldPadding.current
     val visibleIndex by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex
@@ -79,6 +87,9 @@ fun PostDetailScreen(
                     Text(text = "Post")
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.downloadPost() }) {
+                        Icon(Icons.Default.Download, null)
+                    }
                     IconButton(
                         onClick = {
                             post?.url?.let { url ->
@@ -98,7 +109,7 @@ fun PostDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
+            AppActionButton(onClick = {
                 scope.launch {
                     val TAG = "PostDetailScreen"
                     if (lazyListState.firstVisibleItemIndex == 0) {
@@ -118,16 +129,17 @@ fun PostDetailScreen(
             }) {
                 Icon(Icons.Default.ArrowDownward, null)
             }
-        }
+        },
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.add(WindowInsets(bottom = outerPadding.calculateBottomPadding()))
     ) { paddingValues ->
         if (post != null) {
             Box(
                 modifier = Modifier
-                    .padding(paddingValues)
                     .fillMaxSize()
             ) {
                 LazyColumn(
                     state = lazyListState,
+                    contentPadding = paddingValues
                 ) {
                     item {
                         PostCard(

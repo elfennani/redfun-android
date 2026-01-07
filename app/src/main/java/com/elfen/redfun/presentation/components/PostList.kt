@@ -68,6 +68,7 @@ fun PostList(
     lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     showSubreddit: Boolean = true,
     navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ){
     PostList(
         modifier = modifier,
@@ -82,7 +83,8 @@ fun PostList(
         onNavBarShownChange = onNavBarShownChange,
         lazyStaggeredGridState = lazyStaggeredGridState,
         showSubreddit = showSubreddit,
-        navigateFlair = navigateFlair
+        navigateFlair = navigateFlair,
+        contentPadding = contentPadding
     )
 }
 
@@ -101,9 +103,10 @@ fun PostList(
     lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     showSubreddit: Boolean = true,
     navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val scope = rememberCoroutineScope()
-    val innerPadding = PaddingValues(0.dp)
+    val innerPadding = PaddingValues()
     val context = LocalContext.current
     val shouldMute by context.dataStore.data.mapNotNull {
         return@mapNotNull it[booleanPreferencesKey("shouldMute")]
@@ -140,7 +143,8 @@ fun PostList(
                         onSelectDisplayMode = onSelectDisplayMode,
                         navigateFlair = {
                             navigateFlair(post.subreddit, it)
-                        }
+                        },
+                        contentPadding = contentPadding
                     )
                     val isLastPost = page == posts.itemCount - 1
                     if (isLastPost && posts.loadState.append is LoadState.NotLoading) {
@@ -172,7 +176,7 @@ fun PostList(
         ) {
             LazyColumn(
                 state = listState,
-                contentPadding = innerPadding,
+                contentPadding = innerPadding + contentPadding,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = modifier
             ) {
@@ -268,7 +272,7 @@ fun PostList(
             onScrollToTop = { scope.launch { lazyStaggeredGridState.animateScrollToItem(0) } }
         ) {
             LazyVerticalStaggeredGrid(
-                contentPadding = innerPadding + PaddingValues(4.dp),
+                contentPadding = innerPadding + PaddingValues(4.dp) + contentPadding,
                 columns = StaggeredGridCells.Fixed(2),
                 verticalItemSpacing = 4.dp,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
