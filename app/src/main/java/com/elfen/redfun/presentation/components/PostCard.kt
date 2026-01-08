@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,7 +73,9 @@ fun PostCard(
     showSubreddit: Boolean = true,
     truncate: Boolean = true,
     navigateSubreddit: () -> Unit,
-    navigateToFlair: (String) -> Unit = {}
+    navigateToFlair: (String) -> Unit = {},
+    exoPlayer: ExoPlayer? = null,
+    autoPlay: Boolean = false
 ) {
     val context = LocalContext.current
     val shape = RoundedCornerShape(12.dp)
@@ -152,7 +155,7 @@ fun PostCard(
             }
         }
         if (post.video != null) {
-            var videoEnabled by remember { mutableStateOf(false) }
+            var videoEnabled by rememberSaveable { mutableStateOf(autoPlay) }
             if (!videoEnabled) {
                 Box(
                     modifier = Modifier
@@ -182,7 +185,7 @@ fun PostCard(
                 }
             } else {
                 val settings by rememberSettings()
-                val player = rememberExoPlayer(post.video.source)
+                val player = exoPlayer ?: rememberExoPlayer(post.video.source)
 
                 LaunchedEffect(settings) {
                     if (settings != null) {

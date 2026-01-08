@@ -43,8 +43,9 @@ class PlayerState(private val player: Player, private val delayMillis: Long = 10
         bufferedPosition = player.bufferedPosition
         this@PlayerState.isPlaying = isPlaying
         isBuffering = player.playbackState == Player.STATE_BUFFERING
-        isSpeeding = player.playbackParameters.speed == 2f
         isEnded = player.playbackState == Player.STATE_ENDED
+        isPlaying = player.isPlaying
+        isSpeeding = player.playbackParameters.speed == 2f
 
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
