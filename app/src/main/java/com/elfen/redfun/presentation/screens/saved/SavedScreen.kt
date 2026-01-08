@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
@@ -24,11 +25,13 @@ import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.presentation.components.PostList
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.elfen.redfun.presentation.components.ui.AppTopBar
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
+import com.elfen.redfun.presentation.utils.plus
 
 @Composable
 fun SavedScreen(
@@ -60,18 +63,22 @@ fun SavedScreen(
                 title = {
                     Text("Saved Posts")
                 },
+                containerColor =
+                    if (state.displayMode == DisplayMode.SCROLLER)
+                        Color.Black
+                    else
+                        MaterialTheme.colorScheme.background,
+                contentColor =
+                    if (state.displayMode == DisplayMode.SCROLLER)
+                        Color.White
+                    else
+                        MaterialTheme.colorScheme.onBackground
             )
         },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.add(
-            WindowInsets(
-                top = outerPadding.calculateTopPadding(),
-                bottom = outerPadding.calculateBottomPadding()
-            )
-        )
     ) {
         PostList(
             posts = posts,
-            contentPadding = it,
+            contentPadding = it + outerPadding,
             navController = navController,
             displayMode = state.displayMode,
             navBarShown = state.isNavBarShown,

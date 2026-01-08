@@ -14,7 +14,6 @@ data class SearchUiState(
     val query: String = "",
     val searchedQuery: String = "",
     val autoCompleteResult: AutoCompleteResult? = null,
-    val posts: Flow<PagingData<Post>> = flow { PagingData.empty<Post>() },
     val sorting: Sorting? = null,
     val displayMode: DisplayMode = SettingsRepositoryImpl.DefaultDisplayMode,
     val isNavBarShown: Boolean = true,

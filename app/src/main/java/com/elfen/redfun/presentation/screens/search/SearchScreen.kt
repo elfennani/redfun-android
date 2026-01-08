@@ -59,8 +59,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.domain.model.DisplayMode
+import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.search.components.ProfileSearchItem
@@ -68,6 +70,7 @@ import com.elfen.redfun.presentation.screens.search.components.SubredditSearchIt
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.theme.AppTheme
 import com.elfen.redfun.presentation.utils.plus
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun SearchScreen(navController: NavHostController) {
@@ -76,6 +79,7 @@ fun SearchScreen(navController: NavHostController) {
 
     SearchScreen(
         state = state,
+        posts = viewModel.posts,
         navController = navController,
         onEvent = viewModel::onEvent,
         onNavigate = navController::navigate,
@@ -88,12 +92,13 @@ private const val TAG = "SearchScreen"
 @Composable
 private fun SearchScreen(
     state: SearchUiState = SearchUiState(),
+    posts: Flow<PagingData<Post>>,
     navController: NavHostController,
     onEvent: (SearchEvent) -> Unit = {},
     onNavigate: (Any) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-    val posts = state.posts.collectAsLazyPagingItems()
+    val posts = posts.collectAsLazyPagingItems()
     var isFocused by rememberSaveable { mutableStateOf(true) }
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current

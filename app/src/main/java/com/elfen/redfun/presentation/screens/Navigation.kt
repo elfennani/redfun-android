@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -37,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -126,37 +128,49 @@ fun Navigation() {
             val shouldHideNavBar =
                 Destination.entries.none { navController.currentDestination?.hasRoute(it.route::class) == true }
 
-            AnimatedVisibility(
-                visible = navBarShown && !shouldHideNavBar,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                AppNavigationBar(
-                    action = {
-                        AppNavigationBarIconAction(onClick = {
-                            navController.navigate(SearchRoute)
-                        }) {
-                            Icon(Icons.Outlined.Search, "Search")
-                        }
-                    }
-                ) {
-                    Destination.entries.forEach { destination ->
-                        AppNavigationBarTab(
-                            icon = {
-                                Icon(painterResource(destination.icon), destination.label)
-                            },
-                            selected = navController.currentDestination?.hasRoute(destination.route::class) == true,
-                            onClick = {
-                                if (currentDestination?.route != destination.route) {
-                                    navController.navigate(destination.route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            },
+            Box {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(
+                            WindowInsets
+                                .navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding()
                         )
+                )
+                AnimatedVisibility(
+                    visible = navBarShown && !shouldHideNavBar,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    AppNavigationBar(
+                        action = {
+                            AppNavigationBarIconAction(onClick = {
+                                navController.navigate(SearchRoute)
+                            }) {
+                                Icon(Icons.Outlined.Search, "Search")
+                            }
+                        }
+                    ) {
+                        Destination.entries.forEach { destination ->
+                            AppNavigationBarTab(
+                                icon = {
+                                    Icon(painterResource(destination.icon), destination.label)
+                                },
+                                selected = navController.currentDestination?.hasRoute(destination.route::class) == true,
+                                onClick = {
+                                    if (currentDestination?.route != destination.route) {
+                                        navController.navigate(destination.route) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -169,6 +183,7 @@ fun Navigation() {
             LocalScaffoldPadding provides innerPadding
         ) {
             NavHost(
+                modifier = Modifier.consumeWindowInsets(innerPadding),
                 navController = navController,
                 startDestination = if (session == null) LoginRoute else FeedRoute,
                 enterTransition = {

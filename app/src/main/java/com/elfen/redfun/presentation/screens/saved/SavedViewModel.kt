@@ -12,6 +12,7 @@ import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,9 +26,10 @@ class SavedViewModel @Inject constructor(
     private val updateNavBarShown: UpdateNavBarShownUseCase,
     private val updateDisplayMode: UpdateDisplayModeUseCase
 ) : ViewModel() {
-    val state = combine(getDisplayMode(), getNavBarShown()){ displayMode, navBarShown ->
+    private val feed = flowOf(getFeedPaging(Feed.SavedPosts).cachedIn(viewModelScope))
+    val state = combine(getDisplayMode(), getNavBarShown(), feed){ displayMode, navBarShown, feed ->
         SavedUiState(
-            posts = getFeedPaging(Feed.SavedPosts).cachedIn(viewModelScope),
+            posts = feed,
             isLoading = false,
             displayMode = displayMode,
             isNavBarShown = navBarShown

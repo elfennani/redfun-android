@@ -2,6 +2,8 @@ package com.elfen.redfun.presentation.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.elfen.redfun.domain.model.Feed
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.domain.repository.FeedRepository
@@ -14,12 +16,15 @@ import com.elfen.redfun.domain.usecase.UpdateDisplayModeUseCase
 import com.elfen.redfun.domain.usecase.UpdateFeedSortingUseCase
 import com.elfen.redfun.domain.usecase.UpdateNavBarShownUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -40,19 +45,34 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchUiState())
     private val sorting = getSorting(Feed.Search("searching", Sorting.Best))
+    private val searchParams = _state
+        .map { Triple(it.searchedQuery, it.sorting, it.selectedSubreddit) }
+        .distinctUntilChanged()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val posts = searchParams
+        .filter { (query, _, _) -> query.isNotEmpty() }
+        .flatMapLatest { (query, sorting, subreddit) ->
+            getFeedPagingUseCase(
+                Feed.Search(
+                    query = query,
+                    sorting = sorting ?: Sorting.Best,
+                    subreddit = subreddit
+                )
+            )
+        }
+        .cachedIn(viewModelScope)
+
     val displayMode = getDisplayMode("search")
-    val state = combine(_state, sorting, displayMode, getNavBarShown()) { state, sorting, displayMode, navBarShown ->
+    val state = combine(
+        _state,
+        sorting,
+        displayMode,
+        getNavBarShown(),
+    ) { state, sorting, displayMode, navBarShown ->
         state.copy(
             sorting = sorting,
             displayMode = displayMode,
             isNavBarShown = navBarShown,
-            posts = if (state.searchedQuery.isNotEmpty()) getFeedPagingUseCase(
-                Feed.Search(
-                    query = state.searchedQuery,
-                    sorting = sorting,
-                    subreddit = state.selectedSubreddit
-                )
-            ) else state.posts
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, SearchUiState())
 
@@ -111,13 +131,6 @@ class SearchViewModel @Inject constructor(
                     it.copy(
                         selectedSubreddit = event.subreddit,
                         query = if (event.subreddit == null) it.query else "",
-                        posts = if (event.subreddit == null) it.posts else getFeedPagingUseCase(
-                            Feed.Search(
-                                query = it.query,
-                                sorting = it.sorting ?: Sorting.Best,
-                                subreddit = event.subreddit
-                            )
-                        )
                     )
                 }
             }
