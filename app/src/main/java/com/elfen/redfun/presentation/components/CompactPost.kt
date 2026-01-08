@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -53,7 +54,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import java.time.Duration
 import kotlin.math.abs
 import androidx.media3.ui.PlayerView
@@ -62,6 +65,7 @@ import com.elfen.redfun.R
 import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.presentation.utils.isWifiNetwork
+import com.elfen.redfun.presentation.utils.rememberExoPlayer
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -198,10 +202,7 @@ fun CompactPost(
                 }
             } else {
                 val settings by rememberSettings()
-                val player =
-                    remember { androidx.media3.exoplayer.ExoPlayer.Builder(context).build() }
-                var isPlaying by remember { mutableStateOf(true) }
-                var showThumbnail by remember { mutableStateOf(true) }
+                val player = rememberExoPlayer(source = post.video.source)
 
                 LaunchedEffect(settings) {
                     if (settings != null) {
@@ -215,82 +216,15 @@ fun CompactPost(
                     }
                 }
 
-                DisposableEffect(key1 = player) {
-                    player.setMediaItem(MediaItem.fromUri(post.video.source))
-                    player.prepare()
-                    player.playWhenReady = true
-
-                    player.addListener(object : androidx.media3.common.Player.Listener {
-                        override fun onIsPlayingChanged(value: Boolean) {
-                            isPlaying = value
-                        }
-
-                        override fun onRenderedFirstFrame() {
-                            super.onRenderedFirstFrame()
-                            showThumbnail = false
-                        }
-                    })
-
-                    onDispose {
-                        player.release()
-                    }
-                }
-
-                Box(
+                VideoPlayer(
+                    exoPlayer = player,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(shape)
-                        .clickable {
-                            if (player.isPlaying) {
-                                player.pause()
-                            } else {
-                                player.play()
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(shape)
-                            .aspectRatio(
-                                post.video.width.toFloat() / post.video.height.toFloat()
-                            ),
-                        factory = { context ->
-                            PlayerView(context).apply {
-                                this.player = player
-                                this.useController = false
-                            }
-                        },
-                        update = { playerView ->
-                            playerView.player = player
-                        }
-                    )
-
-                    if (showThumbnail)
-                        AsyncImage(
-                            model = post.thumbnail,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .matchParentSize(),
-                            contentScale = ContentScale.Crop
-                        )
-
-                    if (!isPlaying) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White
-                            )
-                        }
-                    }
-                }
+                        .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat()),
+                    shape = shape,
+                    showDuration = false,
+                    thumbnail = post.thumbnail
+                )
             }
         }
 

@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +62,7 @@ import com.elfen.redfun.data.local.dataStore
 import com.elfen.redfun.domain.model.DisplayMode
 import com.elfen.redfun.domain.model.Sorting
 import com.elfen.redfun.presentation.components.ui.AppActionButton
-import com.elfen.redfun.presentation.utils.rememberPlayerTimelineState
+import com.elfen.redfun.presentation.utils.rememberPlayerState
 import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -90,8 +89,8 @@ fun ScrollerPost(
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val exoPlayer = rememberExoPlayer(post, muted = shouldMute)
-    val timelineState = rememberPlayerTimelineState(player = exoPlayer, 250)
+    val exoPlayer = rememberExoPlayer(post = post, isMuted = shouldMute)
+    val timelineState = rememberPlayerState(player = exoPlayer, 250)
     var sortingSheet by remember { mutableStateOf(false) }
     var viewModeSheet by remember { mutableStateOf(false) }
 

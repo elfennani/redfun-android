@@ -51,6 +51,7 @@ import com.elfen.redfun.R
 import com.elfen.redfun.data.rememberSettings
 import com.elfen.redfun.domain.model.Post
 import com.elfen.redfun.presentation.utils.isWifiNetwork
+import com.elfen.redfun.presentation.utils.rememberExoPlayer
 import kotlin.time.ExperimentalTime
 
 @SuppressLint("DefaultLocale")
@@ -128,7 +129,7 @@ fun PostCard(
             maxLines = if (truncate) 2 else Int.MAX_VALUE,
             style = MaterialTheme.typography.titleMedium,
         )
-        if(post.nsfw || post.flair != null){
+        if (post.nsfw || post.flair != null) {
             PostFlairs(
                 isNSFW = post.nsfw,
                 flair = post.flair,
@@ -181,21 +182,7 @@ fun PostCard(
                 }
             } else {
                 val settings by rememberSettings()
-                val player =
-                    remember { ExoPlayer.Builder(context).build() }
-                var isPlaying by remember { mutableStateOf(true) }
-
-                LaunchedEffect(key1 = player) {
-                    player.setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
-                    player.prepare()
-                    player.playWhenReady = true
-
-                    player.addListener(object : androidx.media3.common.Player.Listener {
-                        override fun onIsPlayingChanged(value: Boolean) {
-                            isPlaying = value
-                        }
-                    })
-                }
+                val player = rememberExoPlayer(post.video.source)
 
                 LaunchedEffect(settings) {
                     if (settings != null) {
@@ -209,58 +196,12 @@ fun PostCard(
                     }
                 }
 
-                DisposableEffect(key1 = player) {
-                    onDispose {
-                        player.release()
-                    }
-                }
-
-                Box(
+                VideoPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(shape)
-                        .clickable {
-                            if (player.isPlaying) {
-                                player.pause()
-                            } else {
-                                player.play()
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    AndroidView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(shape)
-                            .aspectRatio(
-                                post.video.width.toFloat() / post.video.height.toFloat()
-                            ),
-                        factory = { context ->
-                            PlayerView(context).apply {
-                                this.player = player
-                                this.useController = false
-                            }
-                        },
-                        update = { playerView ->
-                            playerView.player = player
-                        }
-                    )
-
-                    if (!isPlaying) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White
-                            )
-                        }
-                    }
-                }
+                        .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat()),
+                    exoPlayer = player
+                )
             }
         }
 

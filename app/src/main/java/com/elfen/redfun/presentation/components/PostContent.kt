@@ -58,12 +58,12 @@ import com.elfen.redfun.presentation.utils.isWifiNetwork
 @Composable
 fun rememberExoPlayer(
     post: Post,
-    muted: Boolean = false
+    isMuted: Boolean = false
 ): ExoPlayer {
     val context = LocalContext.current
     val player = remember {
         ExoPlayer.Builder(context).build().apply {
-            volume = if (muted) 0f else 1f
+            volume = if (isMuted) 0f else 1f
             if (post.video != null)
                 setMediaItem(androidx.media3.common.MediaItem.fromUri(post.video.source))
             prepare()
@@ -143,7 +143,10 @@ fun PostContent(
             .clickable { onClick() }
             .fillMaxWidth()
             .fillMaxHeight(if (isScroller) 1f else 0f),
-        verticalArrangement = Arrangement.spacedBy(4.dp, alignment = if(isScroller) Alignment.CenterVertically else Alignment.Top)
+        verticalArrangement = Arrangement.spacedBy(
+            4.dp,
+            alignment = if (isScroller) Alignment.CenterVertically else Alignment.Top
+        )
     ) {
         if (post.link !== null && post.video == null) {
             Row(
@@ -228,20 +231,20 @@ fun PostContent(
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable {
-                            if (player.isPlaying) {
-                                player.pause()
-                            } else {
-                                player.play()
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    val aspectRatio = post.video.width.toFloat() / post.video.height.toFloat()
-                    if (isScroller)
+                if (isScroller) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                if (player.isPlaying) {
+                                    player.pause()
+                                } else {
+                                    player.play()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val aspectRatio = post.video.width.toFloat() / post.video.height.toFloat()
                         AndroidView(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -257,38 +260,28 @@ fun PostContent(
                                 playerView.player = player
                             }
                         )
-                    else
-                        AndroidView(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(
-                                    post.video.width.toFloat() / post.video.height.toFloat()
-                                ),
-                            factory = { context ->
-                                PlayerView(context).apply {
-                                    this.player = player
-                                    this.useController = false
-                                }
-                            },
-                            update = { playerView ->
-                                playerView.player = player
+                        if (!isPlaying) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.PlayArrow,
+                                    contentDescription = null,
+                                    tint = Color.White
+                                )
                             }
-                        )
-
-                    if (!isPlaying) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White
-                            )
                         }
                     }
+                } else {
+                    VideoPlayer(
+                        exoPlayer = player,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(post.video.width.toFloat() / post.video.height.toFloat())
+                    )
                 }
             }
         } else if (!post.images.isNullOrEmpty()) {
