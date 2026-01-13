@@ -24,7 +24,6 @@ import androidx.navigation.NavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.elfen.redfun.presentation.components.PostList
 import com.elfen.redfun.presentation.screens.details.PostDetailRoute
-import com.elfen.redfun.presentation.screens.feed.FeedEvent
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.theme.AppTheme
 
@@ -84,10 +83,10 @@ private fun FlairScreen(
             onSelectDisplayMode = { mode -> onEvent(FlairEvent.ChangeDisplayMode(mode)) },
             onNavBarShownChange = { onEvent(FlairEvent.ToggleNavBar) },
             navBarShown = state.navBarShown,
-            navigateToPost = {
+            onNavigateToPost = {
                 navigateToPost(it.id)
             },
-            navigateToSubreddit = {
+            onNavigateToSubreddit = {
                 navigateToSubreddit(it)
             }
         )

@@ -25,6 +25,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -65,23 +67,21 @@ fun PostList(
     onSelectSorting: (Sorting) -> Unit = {},
     onSelectDisplayMode: (DisplayMode) -> Unit = {},
     onNavBarShownChange: (Boolean) -> Unit = {},
-    lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     showSubreddit: Boolean = true,
-    navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
+    navigateFlair: (subreddit: String, flair: String) -> Unit = { _, _ -> },
     contentPadding: PaddingValues = PaddingValues(0.dp)
-){
+) {
     PostList(
         modifier = modifier,
         posts = posts,
-        navigateToPost = { navController.navigate(PostDetailRoute(it.id)) },
-        navigateToSubreddit = { navController.navigate(SubredditRoute(it)) },
+        onNavigateToPost = { navController.navigate(PostDetailRoute(it.id)) },
+        onNavigateToSubreddit = { navController.navigate(SubredditRoute(it)) },
         displayMode = displayMode,
         sorting = sorting,
         navBarShown = navBarShown,
         onSelectSorting = onSelectSorting,
         onSelectDisplayMode = onSelectDisplayMode,
         onNavBarShownChange = onNavBarShownChange,
-        lazyStaggeredGridState = lazyStaggeredGridState,
         showSubreddit = showSubreddit,
         navigateFlair = navigateFlair,
         contentPadding = contentPadding
@@ -92,17 +92,16 @@ fun PostList(
 fun PostList(
     modifier: Modifier = Modifier,
     posts: LazyPagingItems<Post>,
-    navigateToPost: (Post) -> Unit = {},
-    navigateToSubreddit: (String) -> Unit = {},
+    onNavigateToPost: (Post) -> Unit = {},
+    onNavigateToSubreddit: (String) -> Unit = {},
     displayMode: DisplayMode,
     sorting: Sorting? = null,
     navBarShown: Boolean? = null,
     onSelectSorting: (Sorting) -> Unit = {},
     onSelectDisplayMode: (DisplayMode) -> Unit = {},
     onNavBarShownChange: (Boolean) -> Unit = {},
-    lazyStaggeredGridState: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     showSubreddit: Boolean = true,
-    navigateFlair: (subreddit: String, flair: String) -> Unit = {_, _ -> },
+    navigateFlair: (subreddit: String, flair: String) -> Unit = { _, _ -> },
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val scope = rememberCoroutineScope()
@@ -112,267 +111,102 @@ fun PostList(
         return@mapNotNull it[booleanPreferencesKey("shouldMute")]
     }.collectAsState(true)
 
-    if (displayMode == DisplayMode.SCROLLER) {
-        val pagerState = rememberPagerState(pageCount = { posts.itemCount })
+    val listState = rememberLazyListState()
+    val wrapperEnabled by remember { derivedStateOf { listState.firstVisibleItemIndex != 0 } }
 
-        VerticalPager(
-            state = pagerState,
-            modifier = modifier
-                .background(Color.Black)
-                .fillMaxSize(),
-            contentPadding = innerPadding
-        ) { page ->
-            val post = posts[page]
+
+    LazyColumn(
+        state = listState,
+        contentPadding = innerPadding + contentPadding,
+        modifier = modifier
+    ) {
+        item {
+            PostListPrefs(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                displayMode = displayMode,
+                sorting = sorting,
+                navBarShown = navBarShown,
+                onSelectSorting = onSelectSorting,
+                onSelectDisplayMode = onSelectDisplayMode,
+                onToggleNavBar = { onNavBarShownChange(!(navBarShown ?: true)) }
+            )
+        }
+
+        items(count = posts.itemCount) { index ->
+            val post = posts[index]
             if (post != null) {
-                Box {
-                    ScrollerPost(
-                        modifier = Modifier,
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PostCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToPost(post) }
+                            .padding(16.dp),
                         post = post,
-                        showSubreddit = showSubreddit,
-                        onPostClick = {
-                            navigateToPost(post)
+                        onNavigateSubreddit = {
+                            onNavigateToSubreddit(post.subreddit)
                         },
-                        onClickSubreddit = {
-                            navigateToSubreddit(post.subreddit)
+                        onNavigateUserProfile = {
+                            onNavigateToSubreddit("u_${post.author}")
                         },
-                        shouldMute = shouldMute,
-                        onNavBarShownChange = onNavBarShownChange,
-                        navBarShown = navBarShown,
-                        sorting = sorting,
-                        onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode,
-                        navigateFlair = {
+                        onNavigateToFlair = {
                             navigateFlair(post.subreddit, it)
-                        },
-                        contentPadding = contentPadding
-                    )
-                    val isLastPost = page == posts.itemCount - 1
-                    if (isLastPost && posts.loadState.append is LoadState.NotLoading) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = WindowInsets.statusBars.getTop(LocalDensity.current).dp)
-                                .padding(16.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    posts.refresh()
-                                },
-                            ) {
-                                Text(text = "Load More")
-                            }
                         }
-                    }
+                    )
                 }
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(0.5f)
+                )
             }
         }
-    } else if (displayMode == DisplayMode.LIST) {
-        val listState = rememberLazyListState()
-        val wrapperEnabled by remember { derivedStateOf { listState.firstVisibleItemIndex != 0 } }
 
-        PostListWrapper(
-            enabled = wrapperEnabled,
-            onScrollToTop = { scope.launch { listState.animateScrollToItem(0) } }
-        ) {
-            LazyColumn(
-                state = listState,
-                contentPadding = innerPadding + contentPadding,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = modifier
-            ) {
+        if (posts.loadState.append == LoadState.Loading) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .height(180.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        } else if (posts.loadState.append is LoadState.Error) {
+            val error = (posts.loadState.append as LoadState.Error).error
+
+            if (error is ResourceError) {
                 item {
-                    PostListPrefs(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        displayMode = displayMode,
-                        sorting = sorting,
-                        navBarShown = navBarShown,
-                        onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode,
-                        onToggleNavBar = { onNavBarShownChange(!(navBarShown ?: true)) }
-                    )
-                }
-
-                items(count = posts.itemCount) { index ->
-                    val post = posts[index]
-                    if (post != null) {
-                        PostCard(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable { navigateToPost(post) }
-                                .padding(16.dp),
-                            post = post,
-                            navigateSubreddit = {
-                                navigateToSubreddit(post.subreddit)
-                            },
-                            showSubreddit = showSubreddit,
-                            navigateToFlair = {
-                                navigateFlair(post.subreddit, it)
-                            }
-                        )
-                    }
-                }
-
-                if (posts.loadState.append == LoadState.Loading) {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .height(180.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                } else if (posts.loadState.append is LoadState.Error) {
-                    val error = (posts.loadState.append as LoadState.Error).error
-
-                    if (error is ResourceError) {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .defaultMinSize(minHeight = 180.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(text = "Something went wrong!")
-                                if (error.message != null)
-                                    Text(text = error.error.message ?: "Unknown error")
-                            }
-                        }
-
-                    }
-                } else if (posts.loadState.append is LoadState.NotLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Button(
-                                onClick = {
-                                    posts.refresh()
-                                }
-                            ) {
-                                Text(text = "Load More")
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        val wrapperEnabled by remember { derivedStateOf { lazyStaggeredGridState.firstVisibleItemIndex != 0 } }
-
-        PostListWrapper(
-            enabled = wrapperEnabled,
-            onScrollToTop = { scope.launch { lazyStaggeredGridState.animateScrollToItem(0) } }
-        ) {
-            LazyVerticalStaggeredGrid(
-                contentPadding = innerPadding + PaddingValues(4.dp) + contentPadding,
-                columns = StaggeredGridCells.Fixed(2),
-                verticalItemSpacing = 4.dp,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                state = lazyStaggeredGridState,
-                modifier = modifier
-            ) {
-
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    PostListPrefs(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 2.dp),
-                        displayMode = displayMode,
-                        sorting = sorting,
-                        navBarShown = navBarShown,
-                        onSelectSorting = onSelectSorting,
-                        onSelectDisplayMode = onSelectDisplayMode,
-                        onToggleNavBar = { onNavBarShownChange(!(navBarShown ?: true)) }
-                    )
-                }
-
-                items(count = posts.itemCount, span = {
-                    val post = posts[it]
-
-                    if (
-                        post != null &&
-                        (
-                                (post.video != null && (post.video.width.toFloat() / post.video.height.toFloat()) > 4f / 3f) ||
-                                        (!post.images.isNullOrEmpty() && ((post.images.first().width.toFloat() / post.images.first().height) > 4f / 3f))
-                                )
+                            .defaultMinSize(minHeight = 180.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        StaggeredGridItemSpan.FullLine
-                    } else {
-                        StaggeredGridItemSpan.SingleLane
-                    }
-                }) { index ->
-                    val post = posts[index]
-                    if (post != null) {
-                        CompactPost(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp)),
-                            post = post,
-                            onClickSubreddit = {
-                                navigateToSubreddit(post.subreddit)
-                            },
-                            onClickPost = {
-                                navigateToPost(post)
-                            },
-                            showSubreddit = showSubreddit,
-                            navigateToFlair = navigateFlair
-                        )
+                        Text(text = "Something went wrong!")
+                        if (error.message != null)
+                            Text(text = error.error.message ?: "Unknown error")
                     }
                 }
 
-                if (posts.loadState.append == LoadState.Loading) {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        Column(
-                            modifier = Modifier
-                                .height(180.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
+            }
+        } else if (posts.loadState.append is LoadState.NotLoading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        onClick = {
+                            posts.refresh()
                         }
-                    }
-                } else if (posts.loadState.append is LoadState.Error) {
-                    val error = (posts.loadState.append as LoadState.Error).error
-
-                    if (error is ResourceError) {
-                        item(span = StaggeredGridItemSpan.FullLine) {
-                            Column(
-                                modifier = Modifier
-                                    .defaultMinSize(minHeight = 180.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(text = "Something went wrong!")
-                                if (error.message != null)
-                                    Text(text = error.error.message ?: "Unknown error")
-                            }
-                        }
-
-                    }
-                } else if (posts.loadState.append is LoadState.NotLoading) {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Button(
-                                onClick = {
-                                    posts.refresh()
-                                }
-                            ) {
-                                Text(text = "Load More")
-                            }
-                        }
+                    ) {
+                        Text(text = "Load More")
                     }
                 }
             }

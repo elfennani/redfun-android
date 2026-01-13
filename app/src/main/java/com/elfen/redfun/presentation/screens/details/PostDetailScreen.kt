@@ -2,6 +2,7 @@ package com.elfen.redfun.presentation.screens.details
 
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -53,11 +54,9 @@ import com.elfen.redfun.presentation.components.CommentCard
 import com.elfen.redfun.presentation.components.PostCard
 import com.elfen.redfun.presentation.components.VideoPlayer
 import com.elfen.redfun.presentation.components.ui.AppActionButton
-import com.elfen.redfun.presentation.components.ui.AppNavigationBarIconAction
 import com.elfen.redfun.presentation.screens.flair.FlairRoute
 import com.elfen.redfun.presentation.screens.subreddit.SubredditRoute
 import com.elfen.redfun.presentation.utils.LocalScaffoldPadding
-import com.elfen.redfun.presentation.utils.rememberPlayerState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,12 +79,15 @@ fun PostDetailScreen(
         }
     }
     val topComments =
-        comments.filterIsInstance<Comment.Body>()
-            .foldIndexed(emptyList<Pair<Int, Comment.Body>>()) { index, acc, comment ->
-                if (comment.depth == 0) acc + (index to comment) else acc
+        comments
+            .foldIndexed(
+                emptyList<Pair<Int, Comment.Body>>()
+            ) { index, acc, comment ->
+                if (comment is Comment.Body && comment.depth == 0)
+                    acc + (index to comment)
+                else
+                    acc
             }
-
-
 
     Scaffold(
         topBar = {
@@ -123,7 +125,7 @@ fun PostDetailScreen(
                         Log.d(TAG, "Scrolling to first comment")
                         lazyListState.animateScrollToItem(1)
                     } else {
-                        val currentCommentIndex = lazyListState.firstVisibleItemIndex - 1
+                        val currentCommentIndex = lazyListState.firstVisibleItemIndex
                         val nextComment =
                             topComments.find { it.first > currentCommentIndex }
 
@@ -156,8 +158,11 @@ fun PostDetailScreen(
                             post = post,
                             exoPlayer = player,
                             autoPlay = true,
-                            navigateSubreddit = {
+                            onNavigateSubreddit = {
                                 navController.navigate(SubredditRoute(post.subreddit))
+                            },
+                            onNavigateUserProfile = {
+                                navController.navigate(SubredditRoute("u_${post.author}"))
                             },
                             truncate = false,
                             navigateToFlair = { flair ->

@@ -33,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -53,13 +51,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.zIndex
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import java.time.Duration
 import kotlin.math.abs
-import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.elfen.redfun.R
 import com.elfen.redfun.data.rememberSettings
@@ -126,6 +119,7 @@ fun CompactPost(
     post: Post,
     showSubreddit: Boolean = true,
     onClickSubreddit: () -> Unit,
+    onClickUserProfile: () -> Unit,
     onClickPost: () -> Unit,
     navigateToFlair: (subreddit: String, flair: String) -> Unit = { _, _ -> }
 ) {
@@ -152,7 +146,8 @@ fun CompactPost(
                             detailBottomSheetVisible = false
                         }
                     },
-                navigateSubreddit = onClickSubreddit,
+                onNavigateSubreddit = onClickSubreddit,
+                onNavigateUserProfile = onClickUserProfile,
                 truncate = false,
                 showSubreddit = true,
                 navigateToFlair = {

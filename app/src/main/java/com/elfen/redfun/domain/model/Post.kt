@@ -7,6 +7,7 @@ import kotlin.time.Instant
 data class Post(
     val id: String,
     val body: String?,
+    /** Subreddit name. ("r/" not included) */
     val subreddit: String,
     val subredditIcon: String?,
     val score: Int,
